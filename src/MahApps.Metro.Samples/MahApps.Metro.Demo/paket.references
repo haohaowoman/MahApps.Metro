@@ -1,11 +1,6 @@
-Costura.Fody content: once
 JetBrains.Annotations
+Fody
+Costura.Fody content: once
 MahApps.Metro.IconPacks
-NHotkey
+MaterialDesignThemes
 NHotkey.Wpf
-
-MaterialDesignThemes framework: >= net45
-
-Microsoft.Bcl redirects: on, framework: net40
-Microsoft.Bcl.Async framework: net40
-Microsoft.Bcl.Build import_targets: true, framework: net40

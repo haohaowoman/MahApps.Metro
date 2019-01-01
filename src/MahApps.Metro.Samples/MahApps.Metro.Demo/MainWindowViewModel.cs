@@ -35,9 +35,8 @@ namespace MetroDemo
 
         protected virtual void DoChangeTheme(object sender)
         {
-            var theme = ThemeManager.DetectAppStyle(Application.Current);
-            var accent = ThemeManager.GetAccent(this.Name);
-            ThemeManager.ChangeAppStyle(Application.Current, accent, theme.Item1);
+            var theme = ThemeManager.DetectTheme(Application.Current);
+            ThemeManager.ChangeTheme(Application.Current, theme.BaseColorScheme + "." + this.Name);
         }
     }
 
@@ -45,9 +44,7 @@ namespace MetroDemo
     {
         protected override void DoChangeTheme(object sender)
         {
-            var theme = ThemeManager.DetectAppStyle(Application.Current);
-            var appTheme = ThemeManager.GetAppTheme(this.Name);
-            ThemeManager.ChangeAppStyle(Application.Current, theme.Item2, appTheme);
+            ThemeManager.ChangeThemeBaseColor(Application.Current.Resources, this.Name);
         }
     }
 
@@ -64,14 +61,18 @@ namespace MetroDemo
             SampleData.Seed();
 
             // create accent color menu items for the demo
-            this.AccentColors = ThemeManager.Accents
-                                            .Select(a => new AccentColorMenuData() { Name = a.Name, ColorBrush = a.Resources["AccentColorBrush"] as Brush })
+            this.AccentColors = ThemeManager.Themes
+                                            .GroupBy(x => x.ColorScheme)
+                                            .Select(x => x.First())
+                                            .Select(a => new AccentColorMenuData { Name = a.ColorScheme, ColorBrush = a.ShowcaseBrush })
                                             .ToList();
 
             // create metro theme color menu items for the demo
-            this.AppThemes = ThemeManager.AppThemes
-                                           .Select(a => new AppThemeMenuData() { Name = a.Name, BorderColorBrush = a.Resources["BlackColorBrush"] as Brush, ColorBrush = a.Resources["WhiteColorBrush"] as Brush })
-                                           .ToList();
+            this.AppThemes = ThemeManager.Themes
+                                         .GroupBy(x => x.BaseColorScheme)
+                                         .Select(x => x.First())
+                                         .Select(a => new AppThemeMenuData() { Name = a.BaseColorScheme, BorderColorBrush = a.Resources["BlackColorBrush"] as Brush, ColorBrush = a.Resources["WhiteColorBrush"] as Brush })
+                                         .ToList();
 
 
             Albums = SampleData.Albums;
@@ -311,6 +312,10 @@ namespace MetroDemo
                 {
                     return "SHIFT-D is not allowed";
                 }
+                
+                if (columnName == "TimePickerDate" && this.TimePickerDate == null) {
+                    return "No time given!";
+                }
 
                 return null;
             }
@@ -318,6 +323,21 @@ namespace MetroDemo
 
         [Description("Test-Property")]
         public string Error { get { return string.Empty; } }
+        
+        DateTime? _timePickerDate;
+
+        [Display(Prompt = "Time needed...")]
+        public DateTime? TimePickerDate {
+            get { return this._timePickerDate; }
+            set {
+                if (Equals(value, _timePickerDate)) {
+                    return;
+                }
+
+                _timePickerDate = value;
+                RaisePropertyChanged("TimePickerDate");
+            }
+        }
 
         private ICommand singleCloseTabCommand;
 
@@ -421,7 +441,7 @@ namespace MetroDemo
             var controller = await _dialogCoordinator.ShowProgressAsync(this, "Progress from VM", "Progressing all the things, wait 3 seconds");
             controller.SetIndeterminate();
 
-            await TaskEx.Delay(3000);
+            await Task.Delay(3000);
 
             await controller.CloseAsync();
         }
@@ -485,18 +505,20 @@ namespace MetroDemo
 
         private IEnumerable<string> FindBrushResources()
         {
-            var rd = new ResourceDictionary
-                {
-                    Source = new Uri(@"/MahApps.Metro;component/Styles/Colors.xaml", UriKind.RelativeOrAbsolute)
-                };
+            if (Application.Current.MainWindow != null)
+            {
+                var theme = ThemeManager.DetectTheme(Application.Current.MainWindow);
 
-            var resources = rd.Keys.Cast<object>()
-                    .Where(key => rd[key] is SolidColorBrush)
-                    .Select(key => key.ToString())
-                    .OrderBy(s => s)
-                    .ToList();
+                var resources = theme.Resources.Keys.Cast<object>()
+                                     .Where(key => theme.Resources[key] is SolidColorBrush)
+                                     .Select(key => key.ToString())
+                                     .OrderBy(s => s)
+                                     .ToList();
 
-            return resources;
+                return resources;
+            }
+
+            return Enumerable.Empty<string>();
         }
 
         public Uri[] FlipViewImages

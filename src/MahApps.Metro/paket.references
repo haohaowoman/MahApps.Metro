@@ -1,4 +1,6 @@
-WpfAnalyzers
 JetBrains.Annotations
-gitlink
+WpfAnalyzers
 ControlzEx
+Newtonsoft.Json
+XamlColorSchemeGenerator
+Microsoft.SourceLink.GitHub

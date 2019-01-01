@@ -3,7 +3,7 @@
                     xmlns:Actions="clr-namespace:MahApps.Metro.Actions"
                     xmlns:Controls="clr-namespace:MahApps.Metro.Controls"
                     xmlns:Converters="clr-namespace:MahApps.Metro.Converters"
-                    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity">
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.TabControl.xaml" />
@@ -48,7 +48,7 @@
                                                            ContentStringFormat="{TemplateBinding HeaderStringFormat}"
                                                            ContentTemplate="{TemplateBinding HeaderTemplate}"
                                                            ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}"
-                                                           FontFamily="{TemplateBinding FontFamily}"
+                                                           FontFamily="{TemplateBinding Controls:ControlsHelper.HeaderFontFamily}"
                                                            FontSize="{TemplateBinding Controls:ControlsHelper.HeaderFontSize}"
                                                            FontStretch="{TemplateBinding Controls:ControlsHelper.HeaderFontStretch}"
                                                            FontStyle="{TemplateBinding FontStyle}"

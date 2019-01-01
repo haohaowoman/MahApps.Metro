@@ -1,7 +1,5 @@
 ﻿using System;
-#if NET4
 using System.Threading.Tasks;
-#endif
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -11,7 +9,7 @@ using MetroDemo.ExampleWindows;
 
 namespace MetroDemo
 {
-    public partial class MainWindow
+    public partial class MainWindow : MetroWindow
     {
         private bool _shutdown;
         private readonly MainWindowViewModel _viewModel;
@@ -45,26 +43,26 @@ namespace MetroDemo
             DependencyProperty.Register("ToggleFullScreen",
                                         typeof(bool),
                                         typeof(MainWindow),
-                                        new PropertyMetadata(default(bool), ToggleFullScreenPropertyChangedCallback));
+                                        new PropertyMetadata(default(bool), OnToggleFullScreenChanged));
 
-        private static void ToggleFullScreenPropertyChangedCallback(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
+        private static void OnToggleFullScreenChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
         {
-            var metroWindow = (MetroWindow)dependencyObject;
             if (e.OldValue != e.NewValue)
             {
+                var window = (MainWindow)dependencyObject;
                 var fullScreen = (bool)e.NewValue;
                 if (fullScreen)
                 {
-                    metroWindow.IgnoreTaskbarOnMaximize = true;
-                    metroWindow.WindowState = WindowState.Maximized;
-                    metroWindow.UseNoneWindowStyle = true;
+                    window.SetCurrentValue(IgnoreTaskbarOnMaximizeProperty, true);
+                    window.SetCurrentValue(WindowStateProperty, WindowState.Maximized);
+                    window.SetCurrentValue(UseNoneWindowStyleProperty, true);
                 }
                 else
                 {
-                    metroWindow.WindowState = WindowState.Normal;
-                    metroWindow.UseNoneWindowStyle = false;
-                    metroWindow.ShowTitleBar = true; // <-- this must be set to true
-                    metroWindow.IgnoreTaskbarOnMaximize = false;
+                    window.SetCurrentValue(WindowStateProperty, WindowState.Normal);
+                    window.SetCurrentValue(UseNoneWindowStyleProperty, false);
+                    window.SetCurrentValue(ShowTitleBarProperty, true); // <-- this must be set to true
+                    window.SetCurrentValue(IgnoreTaskbarOnMaximizeProperty, false);
                 }
             }
         }
@@ -79,15 +77,15 @@ namespace MetroDemo
             DependencyProperty.Register("UseAccentForDialogs",
                                         typeof(bool),
                                         typeof(MainWindow),
-                                        new PropertyMetadata(default(bool), ToggleUseAccentForDialogsPropertyChangedCallback));
+                                        new PropertyMetadata(default(bool), OnUseAccentForDialogsChanged));
 
-        private static void ToggleUseAccentForDialogsPropertyChangedCallback(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
+        private static void OnUseAccentForDialogsChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
         {
-            var metroWindow = (MetroWindow)dependencyObject;
             if (e.OldValue != e.NewValue)
             {
+                var window = (MainWindow)dependencyObject;
                 var useAccentForDialogs = (bool)e.NewValue;
-                metroWindow.MetroDialogOptions.ColorScheme = useAccentForDialogs ? MetroDialogColorScheme.Accented : MetroDialogColorScheme.Theme;
+                window.MetroDialogOptions.ColorScheme = useAccentForDialogs ? MetroDialogColorScheme.Accented : MetroDialogColorScheme.Theme;
             }
         }
 
@@ -147,7 +145,7 @@ namespace MetroDemo
             dialog.DialogSettings.ColorScheme = MetroDialogOptions.ColorScheme;
             dialog = dialog.ShowDialogExternally();
 
-            await TaskEx.Delay(5000);
+            await Task.Delay(5000);
 
             await dialog.RequestCloseAsync();
         }
@@ -201,12 +199,12 @@ namespace MetroDemo
             var textBlock = dialog.FindChild<TextBlock>("MessageTextBlock");
             textBlock.Text = "A message box will appear in 3 seconds.";
 
-            await TaskEx.Delay(3000);
+            await Task.Delay(3000);
 
             await this.ShowMessageAsync("Secondary dialog", "This message is shown on top of another.", MessageDialogStyle.Affirmative, new MetroDialogSettings() {OwnerCanCloseWithDialog = true});
 
             textBlock.Text = "The dialog will close in 2 seconds.";
-            await TaskEx.Delay(2000);
+            await Task.Delay(2000);
 
             await this.HideMetroDialogAsync(dialog);
         }
@@ -294,7 +292,7 @@ namespace MetroDemo
             var controller = await this.ShowProgressAsync("Please wait...", "We are baking some cupcakes!", settings: mySettings);
             controller.SetIndeterminate();
 
-            await TaskEx.Delay(5000);
+            await Task.Delay(5000);
 
             controller.SetCancelable(true);
 
@@ -310,7 +308,7 @@ namespace MetroDemo
 
                 i += 1.0;
 
-                await TaskEx.Delay(2000);
+                await Task.Delay(2000);
             }
 
             await controller.CloseAsync();

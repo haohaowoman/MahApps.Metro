@@ -1,10 +1,5 @@
-Costura.Fody content: once
 JetBrains.Annotations
+Fody
+Costura.Fody content: once
 MahApps.Metro.IconPacks
 Caliburn.Micro
-  exclude System.Windows.Interactivity
-Caliburn.Micro.Core
-
-Microsoft.Bcl redirects: on, framework: net40
-Microsoft.Bcl.Async framework: net40
-Microsoft.Bcl.Build import_targets: true, framework: net40

@@ -13,6 +13,7 @@
         <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource TextBoxBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="ContextMenu" Value="{DynamicResource TextBoxMetroContextMenu}" />
         <Setter Property="Controls:ControlsHelper.FocusBorderBrush" Value="{DynamicResource TextBoxFocusBorderBrush}" />
         <Setter Property="Controls:ControlsHelper.MouseOverBorderBrush" Value="{DynamicResource TextBoxMouseOverBorderBrush}" />
         <Setter Property="Controls:TextBoxHelper.ButtonFontSize" Value="{DynamicResource ClearTextButtonFontSize}" />
@@ -69,6 +70,7 @@
                                      Controls:TextBoxHelper.WatermarkTrimming="{TemplateBinding Controls:TextBoxHelper.WatermarkTrimming}"
                                      Background="{x:Null}"
                                      BorderThickness="0"
+                                     ContextMenu="{TemplateBinding ContextMenu}"
                                      FocusVisualStyle="{x:Null}"
                                      Focusable="{TemplateBinding Focusable}"
                                      FontFamily="{TemplateBinding FontFamily}"

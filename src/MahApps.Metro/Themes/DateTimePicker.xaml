@@ -3,7 +3,7 @@
                     xmlns:Behaviours="clr-namespace:MahApps.Metro.Behaviours"
                     xmlns:Controls="clr-namespace:MahApps.Metro.Controls"
                     xmlns:Converters="clr-namespace:MahApps.Metro.Converters"
-                    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
     <ResourceDictionary.MergedDictionaries>
@@ -112,6 +112,7 @@
         <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource TextBoxBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="ContextMenu" Value="{DynamicResource TextBoxMetroContextMenu}" />
         <Setter Property="Controls:ControlsHelper.FocusBorderBrush" Value="{DynamicResource TextBoxFocusBorderBrush}" />
         <Setter Property="Controls:ControlsHelper.MouseOverBorderBrush" Value="{DynamicResource TextBoxMouseOverBorderBrush}" />
         <Setter Property="Controls:TextBoxHelper.ButtonWidth" Value="22" />
@@ -130,7 +131,7 @@
                     <Grid>
                         <Border x:Name="Base"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{DynamicResource ControlBorderBrush}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         <Grid x:Name="PART_InnerGrid" Margin="{TemplateBinding Padding}">
@@ -151,6 +152,7 @@
                                                Controls:TextBoxHelper.WatermarkAlignment="{TemplateBinding Controls:TextBoxHelper.WatermarkAlignment}"
                                                Controls:TextBoxHelper.WatermarkTrimming="{TemplateBinding Controls:TextBoxHelper.WatermarkTrimming}"
                                                CaretBrush="{DynamicResource BlackBrush}"
+                                               ContextMenu="{TemplateBinding ContextMenu}"
                                                Focusable="{TemplateBinding Focusable}"
                                                FontFamily="{TemplateBinding FontFamily}"
                                                FontSize="{TemplateBinding FontSize}"

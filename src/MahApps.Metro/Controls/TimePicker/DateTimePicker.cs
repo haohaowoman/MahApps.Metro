@@ -44,9 +44,9 @@
         /// <returns>
         ///     The date to display. The default is <see cref="DateTime.Today" />.
         /// </returns>
-        public DateTime? DisplayDate
+        public DateTime DisplayDate
         {
-            get { return (DateTime?)GetValue(DisplayDateProperty); }
+            get { return (DateTime)GetValue(DisplayDateProperty); }
             set { SetValue(DisplayDateProperty, value); }
         }
 
@@ -140,6 +140,7 @@
 
             if (_calendar != null)
             {
+                _calendar.SetBinding(Calendar.SelectedDateProperty, GetBinding(SelectedDateTimeProperty));
                 _calendar.SetBinding(Calendar.DisplayDateProperty, GetBinding(DisplayDateProperty));
                 _calendar.SetBinding(Calendar.DisplayDateStartProperty, GetBinding(DisplayDateStartProperty));
                 _calendar.SetBinding(Calendar.DisplayDateEndProperty, GetBinding(DisplayDateEndProperty));
@@ -191,7 +192,7 @@
             DateTime ts;
             if (DateTime.TryParse(((DatePickerTextBox)sender).Text, SpecificCultureInfo, System.Globalization.DateTimeStyles.None, out ts))
             {
-                SelectedDateTime = ts;
+                this.SetCurrentValue(SelectedDateTimeProperty, ts);
             }
             else
             {
@@ -200,7 +201,7 @@
                     // if already null, overwrite wrong data in textbox
                     WriteValueToTextBox();
                 }
-                SelectedDateTime = null;
+                this.SetCurrentValue(SelectedDateTimeProperty, null);
             }
         }
 
@@ -240,7 +241,7 @@
             var dt = (DateTime?)e.AddedItems[0];
             if (dt.HasValue)
             {
-                dateTimePicker.SelectedDateTime = dt.Value.Date + dateTimePicker.GetSelectedTimeFromGUI();
+                dateTimePicker.SetCurrentValue(SelectedDateTimeProperty, dt.Value.Date + dateTimePicker.GetSelectedTimeFromGUI());
             }
             else
             {
@@ -270,10 +271,10 @@
             var dateTime = GetSelectedDateTimeFromGUI();
             if (dateTime != null)
             {
-                DisplayDate = dateTime != DateTime.MinValue ? dateTime : DateTime.Today;
+                this.SetCurrentValue(DisplayDateProperty, dateTime.Value > DateTime.MinValue && dateTime.Value < DateTime.MaxValue ? dateTime.Value : DateTime.Today);
                 if ((SelectedDateTime != DisplayDate && SelectedDateTime != DateTime.MinValue) || (Popup != null && Popup.IsOpen))
                 {
-                    SelectedDateTime = DisplayDate;
+                    this.SetCurrentValue(SelectedDateTimeProperty, DisplayDate);
                 }
             }
         }

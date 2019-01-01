@@ -4,7 +4,6 @@
                     xmlns:Dialogs="clr-namespace:MahApps.Metro.Controls.Dialogs">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
 
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/Underline.xaml" />
@@ -14,7 +13,6 @@
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/FlipView.xaml" />
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/Flyout.xaml" />
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/FlyoutsControl.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/Glow.xaml" />
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/MetroAnimatedSingleRowTabControl.xaml" />
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/MetroAnimatedTabControl.xaml" />
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/MetroContentControl.xaml" />
@@ -46,6 +44,8 @@
     <Style BasedOn="{StaticResource MahApps.Metro.Styles.ToggleSwitch}" TargetType="{x:Type Controls:ToggleSwitch}" />
     <Style BasedOn="{StaticResource MahApps.Metro.Styles.ContentControlEx}" TargetType="{x:Type Controls:ContentControlEx}" />
     <Style BasedOn="{StaticResource MahApps.Metro.Styles.MetroThumbContentControl}" TargetType="{x:Type Controls:MetroThumbContentControl}" />
+    <Style BasedOn="{StaticResource MahApps.Metro.Styles.WindowCommandsItem}" TargetType="{x:Type Controls:WindowCommandsItem}" />
+    <Style BasedOn="{StaticResource MahApps.Metro.Styles.WindowCommands}" TargetType="{x:Type Controls:WindowCommands}" />
     <Style BasedOn="{StaticResource MahApps.Metro.Styles.WindowButtonCommands}" TargetType="{x:Type Controls:WindowButtonCommands}" />
     <Style BasedOn="{StaticResource MahApps.Metro.Styles.HamburgerMenu}" TargetType="{x:Type Controls:HamburgerMenu}" />
     <Style BasedOn="{StaticResource MahApps.Metro.Styles.MetroHeader}" TargetType="{x:Type Controls:MetroHeader}" />
