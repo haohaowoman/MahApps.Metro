@@ -17,7 +17,7 @@ using ControlzEx.Behaviors;
 using ControlzEx.Native;
 using ControlzEx.Standard;
 using JetBrains.Annotations;
-using MahApps.Metro.Behaviours;
+using MahApps.Metro.Behaviors;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Xaml.Behaviors;
 
@@ -84,6 +84,7 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public static readonly DependencyProperty IsCloseButtonEnabledWithDialogProperty = IsCloseButtonEnabledWithDialogPropertyKey.DependencyProperty;
 
+        public static readonly DependencyProperty ShowSystemMenuProperty = DependencyProperty.Register("ShowSystemMenu", typeof(bool), typeof(MetroWindow), new PropertyMetadata(true));
         public static readonly DependencyProperty ShowSystemMenuOnRightClickProperty = DependencyProperty.Register("ShowSystemMenuOnRightClick", typeof(bool), typeof(MetroWindow), new PropertyMetadata(true));
 
         public static readonly DependencyProperty TitleBarHeightProperty = DependencyProperty.Register("TitleBarHeight", typeof(int), typeof(MetroWindow), new PropertyMetadata(30, TitleBarHeightPropertyChangedCallback));
@@ -549,7 +550,16 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>
-        /// Gets/sets if the the system menu should popup on right click.
+        /// Gets or sets a value that indicates whether the system menu should popup with left mouse click on the window icon.
+        /// </summary>
+        public bool ShowSystemMenu
+        {
+            get { return (bool)GetValue(ShowSystemMenuProperty); }
+            set { SetValue(ShowSystemMenuProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether the system menu should popup with right mouse click if the mouse position is on title bar or on the entire window if it has no title bar (and no title bar height).
         /// </summary>
         public bool ShowSystemMenuOnRightClick
         {
@@ -916,13 +926,12 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public MetroWindow()
         {
+            this.SetCurrentValue(MetroDialogOptionsProperty, new MetroDialogSettings());
+
             // BorderlessWindowBehavior initialization has to occur in constructor. Otherwise the load event is fired early and performance of the window is degraded.
             this.InitializeWindowChromeBehavior();
             this.InitializeSettingsBehavior();
-            // Using ContentRendered causes the window startup animation to show and then shows the glow
-            this.ContentRendered += this.MetroWindow_ContentRendered;
-
-            this.SetCurrentValue(MetroDialogOptionsProperty, new MetroDialogSettings());
+            this.InitializeGlowWindowBehavior();
 
             DataContextChanged += MetroWindow_DataContextChanged;
             Loaded += this.MetroWindow_Loaded;
@@ -930,11 +939,6 @@ namespace MahApps.Metro.Controls
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (this.WindowTransitionsEnabled)
-            {
-                VisualStateManager.GoToState(this, "AfterLoaded", true);
-            }
-
             if (this.Flyouts == null)
             {
                 this.Flyouts = new FlyoutsControl();
@@ -944,12 +948,6 @@ namespace MahApps.Metro.Controls
 
             ThemeManager.IsThemeChanged += ThemeManagerOnIsThemeChanged;
             this.Unloaded += (o, args) => ThemeManager.IsThemeChanged -= ThemeManagerOnIsThemeChanged;
-        }
-
-        private void MetroWindow_ContentRendered(object sender, EventArgs e)
-        {
-            this.ContentRendered -= this.MetroWindow_ContentRendered;
-            this.InitializeGlowWindowBehavior();
         }
 
         private void InitializeWindowChromeBehavior()
@@ -969,19 +967,19 @@ namespace MahApps.Metro.Controls
 
         private void InitializeSettingsBehavior()
         {
-            var behaviour = new WindowsSettingBehaviour();
-            Interaction.GetBehaviors(this).Add(behaviour);
+            var behavior = new WindowsSettingBehavior();
+            Interaction.GetBehaviors(this).Add(behavior);
         }
 
         /// <summary>
         /// Initializes various behaviors for the window.
-        /// For example <see cref="BorderlessWindowBehavior"/>, <see cref="WindowsSettingBehaviour"/> and <see cref="GlowWindowBehavior"/>.
+        /// For example <see cref="BorderlessWindowBehavior"/>, <see cref="WindowsSettingBehavior"/> and <see cref="GlowWindowBehavior"/>.
         /// </summary>
         private void InitializeBehaviors()
         {
             // var borderlessWindowBehavior = new BorderlessWindowBehavior();
             //
-            // var windowsSettingBehaviour = new WindowsSettingBehaviour();
+            // var windowsSettingBehavior = new WindowsSettingBehavior();
             //
             // var glowWindowBehavior = new GlowWindowBehavior();
             // BindingOperations.SetBinding(glowWindowBehavior, GlowWindowBehavior.ResizeBorderThicknessProperty, new Binding { Path = new PropertyPath(ResizeBorderThicknessProperty), Source = this });
@@ -991,7 +989,7 @@ namespace MahApps.Metro.Controls
             // var collection = new StylizedBehaviorCollection
             // {
             //     borderlessWindowBehavior,
-            //     windowsSettingBehaviour,
+            //     windowsSettingBehavior,
             //     glowWindowBehavior
             // };
             //
@@ -1319,7 +1317,7 @@ namespace MahApps.Metro.Controls
                 {
                     Close();
                 }
-                else
+                else if (this.ShowSystemMenu)
                 {
                     ShowSystemMenuPhysicalCoordinates(this, PointToScreen(new Point(0, TitleBarHeight)));
                 }
