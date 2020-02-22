@@ -131,6 +131,23 @@
         }
 
         /// <summary>
+        /// Identifies the <see cref="OverlayBrush"/> dependency property. 
+        /// </summary>
+        /// <returns>The identifier for the <see cref="OverlayBrush" /> dependency property.</returns>
+        public static readonly DependencyProperty OverlayBrushProperty =
+            DependencyProperty.Register("OverlayBrush", typeof(Brush), typeof(SplitView), new PropertyMetadata(Brushes.Transparent));
+
+        /// <summary>
+        /// Gets or sets a value that specifies the OverlayBrush 
+        /// </summary>
+        /// <returns>The current OverlayBrush</returns>
+        public Brush OverlayBrush
+        {
+            get { return (Brush)this.GetValue(OverlayBrushProperty); }
+            set { this.SetValue(OverlayBrushProperty, value); }
+        }
+
+        /// <summary>
         ///     Identifies the <see cref="OpenPaneLength" /> dependency property.
         /// </summary>
         /// <returns>The identifier for the <see cref="OpenPaneLength" /> dependency property.</returns>
@@ -250,12 +267,14 @@
         {
             this.DefaultStyleKey = typeof(SplitView);
             this.TemplateSettings = new SplitViewTemplateSettings(this);
+            this.DataContextChanged += this.SplitViewDataContextChanged;
+        }
 
-            this.Loaded += (s, args) =>
-                {
-                    this.TemplateSettings.Update();
-                    this.ChangeVisualState(false);
-                };
+        private void SplitViewDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            // MahApps add this pane to the SplitView with AddLogicalChild method.
+            // This has the side effect that the DataContext doesn't update, so do this now here.
+            if (this.Pane is FrameworkElement elementPane) elementPane.DataContext = this.DataContext;
         }
 
         /// <summary>
@@ -279,6 +298,12 @@
             {
                 this.lightDismissLayer.MouseDown += this.OnLightDismiss;
             }
+
+            this.ExecuteWhenLoaded(() =>
+                {
+                    this.TemplateSettings.Update();
+                    this.ChangeVisualState(false);
+                });
         }
 
         private static void UpdateLogicalChild(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
