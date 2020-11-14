@@ -1,4 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Tests.TestHelpers;
@@ -32,13 +37,13 @@ namespace MahApps.Metro.Tests
             var presenter = defaultButton.FindChild<ContentPresenter>("PART_ContentPresenter");
 
             ControlsHelper.SetContentCharacterCasing(defaultButton, CharacterCasing.Normal);
-            Assert.Equal("SomeText", presenter.Content); 
+            Assert.Equal("SomeText", presenter.Content);
 
             ControlsHelper.SetContentCharacterCasing(defaultButton, CharacterCasing.Lower);
-            Assert.Equal("sometext", presenter.Content); 
+            Assert.Equal("sometext", presenter.Content);
 
             ControlsHelper.SetContentCharacterCasing(defaultButton, CharacterCasing.Upper);
-            Assert.Equal("SOMETEXT", presenter.Content); 
+            Assert.Equal("SOMETEXT", presenter.Content);
         }
 
         [Fact]
@@ -55,7 +60,7 @@ namespace MahApps.Metro.Tests
 
         [Fact]
         [DisplayTestMethodName]
-        public async Task SquareButtonBespectsButtonHelperContentCharacterCasing()
+        public async Task SquareButtonRespectsButtonHelperContentCharacterCasing()
         {
             await TestHost.SwitchToAppThread();
 
@@ -66,6 +71,36 @@ namespace MahApps.Metro.Tests
             var presenter = defaultButton.FindChild<ContentPresenter>("PART_ContentPresenter");
 
             Assert.Equal("SomeText", presenter.Content);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public async Task DropDownButtonShouldRespectParentIsEnabledProperty()
+        {
+            await TestHost.SwitchToAppThread();
+
+            var window = await WindowHelpers.CreateInvisibleWindowAsync<ButtonWindow>();
+
+            window.TheStackPanel.SetCurrentValue(UIElement.IsEnabledProperty, false);
+            Assert.False(window.TheDropDownButton.IsEnabled);
+
+            window.TheStackPanel.SetCurrentValue(UIElement.IsEnabledProperty, true);
+            Assert.True(window.TheDropDownButton.IsEnabled);
+        }
+
+        [Fact]
+        [DisplayTestMethodName]
+        public async Task SplitButtonShouldRespectParentIsEnabledProperty()
+        {
+            await TestHost.SwitchToAppThread();
+
+            var window = await WindowHelpers.CreateInvisibleWindowAsync<ButtonWindow>();
+
+            window.TheStackPanel.SetCurrentValue(UIElement.IsEnabledProperty, false);
+            Assert.False(window.TheSplitButton.IsEnabled);
+
+            window.TheStackPanel.SetCurrentValue(UIElement.IsEnabledProperty, true);
+            Assert.True(window.TheSplitButton.IsEnabled);
         }
     }
 }

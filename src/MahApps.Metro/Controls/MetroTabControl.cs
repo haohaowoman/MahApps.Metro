@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections;
 using System.ComponentModel;
 using System.Linq;
@@ -7,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using ControlzEx.Controls;
 using JetBrains.Annotations;
+using MahApps.Metro.ValueBoxes;
 
 namespace MahApps.Metro.Controls
 {
@@ -24,12 +29,12 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>Identifies the <see cref="KeepVisualTreeInMemoryWhenChangingTabs"/> dependency property.</summary>
-        public static readonly DependencyProperty KeepVisualTreeInMemoryWhenChangingTabsProperty = DependencyProperty.Register(nameof(KeepVisualTreeInMemoryWhenChangingTabs), typeof(bool), typeof(MetroTabControl), new PropertyMetadata(false));
+        public static readonly DependencyProperty KeepVisualTreeInMemoryWhenChangingTabsProperty = DependencyProperty.Register(nameof(KeepVisualTreeInMemoryWhenChangingTabs), typeof(bool), typeof(MetroTabControl), new PropertyMetadata(BooleanBoxes.FalseBox));
 
         public bool KeepVisualTreeInMemoryWhenChangingTabs
         {
             get { return (bool)GetValue(KeepVisualTreeInMemoryWhenChangingTabsProperty); }
-            set { SetValue(KeepVisualTreeInMemoryWhenChangingTabsProperty, value); }
+            set { SetValue(KeepVisualTreeInMemoryWhenChangingTabsProperty, BooleanBoxes.Box(value)); }
         }
     }
 
@@ -108,6 +113,7 @@ namespace MahApps.Metro.Controls
                     }
                 }
             }
+
             return false;
         }
 

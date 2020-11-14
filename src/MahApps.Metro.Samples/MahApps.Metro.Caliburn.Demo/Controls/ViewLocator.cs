@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Windows;
@@ -19,6 +23,7 @@ namespace Caliburn.Metro.Demo.Controls
         }
 
         public UIElement GetOrCreateViewType(Type viewType)
+
         {
             var cached = IoC.GetAllInstances(viewType).OfType<UIElement>().FirstOrDefault();
             if (cached != null)
@@ -34,13 +39,11 @@ namespace Caliburn.Metro.Demo.Controls
 
             var newInstance = (UIElement)Activator.CreateInstance(viewType);
 
-            var window = newInstance as Window;
-            if (window != null)
-            {
-                window.Resources.MergedDictionaries.Add(this.themeManager.GetThemeResources());
-            }
-
             Micro.ViewLocator.InitializeComponent(newInstance);
+
+            // alternative way to use the MahApps resources
+            // (newInstance as Window)?.Resources.MergedDictionaries.Add(themeManager.GetThemeResources());
+
             return newInstance;
         }
     }

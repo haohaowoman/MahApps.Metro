@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,7 +14,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using MahApps.Metro;
 using MetroDemo.Models;
 using System.Windows.Input;
 using MahApps.Metro.Controls;
@@ -20,6 +23,8 @@ using MetroDemo.ExampleViews;
 using NHotkey;
 using NHotkey.Wpf;
 using System.Collections.ObjectModel;
+using System.Windows.Data;
+using ControlzEx.Theming;
 
 namespace MetroDemo
 {
@@ -40,7 +45,7 @@ namespace MetroDemo
 
         protected virtual void DoChangeTheme(object sender)
         {
-            ThemeManager.ChangeThemeColorScheme(Application.Current, this.Name);
+            ThemeManager.Current.ChangeThemeColorScheme(Application.Current, this.Name);
         }
     }
 
@@ -48,14 +53,14 @@ namespace MetroDemo
     {
         protected override void DoChangeTheme(object sender)
         {
-            ThemeManager.ChangeThemeBaseColor(Application.Current, this.Name);
+            ThemeManager.Current.ChangeThemeBaseColor(Application.Current, this.Name);
         }
     }
 
     public class MainWindowViewModel : ViewModelBase, IDataErrorInfo, IDisposable
     {
         private readonly IDialogCoordinator _dialogCoordinator;
-        int? _integerGreater10Property;
+        int? _integerGreater10Property = 2;
         private bool _animateOnPositionChange = true;
 
         public MainWindowViewModel(IDialogCoordinator dialogCoordinator)
@@ -65,18 +70,23 @@ namespace MetroDemo
             SampleData.Seed();
 
             // create accent color menu items for the demo
-            this.AccentColors = ThemeManager.ColorSchemes
-                                            .Select(a => new AccentColorMenuData { Name = a.Name, ColorBrush = a.ShowcaseBrush })
+            this.AccentColors = ThemeManager.Current.Themes
+                                            .GroupBy(x => x.ColorScheme)
+                                            .OrderBy(a => a.Key)
+                                            .Select(a => new AccentColorMenuData { Name = a.Key, ColorBrush = a.First().ShowcaseBrush })
                                             .ToList();
 
             // create metro theme color menu items for the demo
-            this.AppThemes = ThemeManager.Themes
+            this.AppThemes = ThemeManager.Current.Themes
                                          .GroupBy(x => x.BaseColorScheme)
                                          .Select(x => x.First())
-                                         .Select(a => new AppThemeMenuData() { Name = a.BaseColorScheme, BorderColorBrush = a.Resources["MahApps.Brushes.BlackColor"] as Brush, ColorBrush = a.Resources["MahApps.Brushes.WhiteColor"] as Brush })
+                                         .Select(a => new AppThemeMenuData() { Name = a.BaseColorScheme, BorderColorBrush = a.Resources["MahApps.Brushes.ThemeForeground"] as Brush, ColorBrush = a.Resources["MahApps.Brushes.ThemeBackground"] as Brush })
                                          .ToList();
 
-            this.Albums = SampleData.Albums;
+            this.Albums = new ObservableCollection<Album>(SampleData.Albums);
+            var cvs = CollectionViewSource.GetDefaultView(this.Albums);
+            cvs.GroupDescriptions.Add(new PropertyGroupDescription("Artist"));
+
             this.Artists = SampleData.Artists;
 
             this.FlipViewImages = new Uri[]
@@ -171,14 +181,17 @@ namespace MetroDemo
             this.GenreDropDownMenuItemCommand = new SimpleCommand(
                 o => true,
                 async x => { await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("DropDownButton Menu", $"You are clicked the '{x}' menu item."); }
-                );
+            );
 
             this.GenreSplitButtonItemCommand = new SimpleCommand(
                 o => true,
                 async x => { await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("Split Button", $"The selected item is '{x}'."); }
-                );
+            );
 
             this.ShowHamburgerAboutCommand = ShowAboutCommand.Command;
+
+            this.ToggleSwitchCommand = new SimpleCommand(execute: async x => { await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ToggleSwitch", $"The ToggleSwitch is now {((ToggleSwitch)x).IsOn}."); },
+                                                         canExecute: x => this.CanUseToggleSwitch);
         }
 
         public ICommand ArtistsDropDownCommand { get; }
@@ -191,6 +204,30 @@ namespace MetroDemo
 
         public ICommand OpenFirstFlyoutCommand { get; }
 
+        public ICommand ChangeSyncModeCommand { get; } = new SimpleCommand(execute: x =>
+            {
+                ThemeManager.Current.ThemeSyncMode = (ThemeSyncMode)x;
+                ThemeManager.Current.SyncTheme();
+            });
+
+        public ICommand SyncThemeNowCommand { get; } = new SimpleCommand(execute: x => ThemeManager.Current.SyncTheme());
+
+        public ICommand ToggleSwitchCommand { get; }
+
+        private bool canUseToggleSwitch = true;
+
+        public bool CanUseToggleSwitch
+        {
+            get => this.canUseToggleSwitch;
+            set => this.Set(ref this.canUseToggleSwitch, value);
+        }
+
+        public ICommand ToggleSwitchOnCommand { get; } = new SimpleCommand(execute: async x => { await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ToggleSwitch", "The ToggleSwitch is now On."); },
+                                                                           canExecute: x => x is MainWindowViewModel viewModel && viewModel.CanUseToggleSwitch);
+
+        public ICommand ToggleSwitchOffCommand { get; } = new SimpleCommand(execute: async x => { await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ToggleSwitch", "The ToggleSwitch is now Off."); },
+                                                                            canExecute: x => x is MainWindowViewModel viewModel && viewModel.CanUseToggleSwitch);
+
         public void Dispose()
         {
             HotkeyManager.Current.Remove("demo");
@@ -200,11 +237,12 @@ namespace MetroDemo
 
         public int SelectedIndex { get; set; }
 
-        public List<Album> Albums { get; set; }
+        public ICollection<Album> Albums { get; set; }
 
         public List<Artist> Artists { get; set; }
 
         private ObservableCollection<Artist> _selectedArtists = new ObservableCollection<Artist>();
+
         public ObservableCollection<Artist> SelectedArtists
         {
             get => _selectedArtists;
@@ -223,6 +261,14 @@ namespace MetroDemo
         {
             get => this.currentCulture;
             set => this.Set(ref this.currentCulture, value);
+        }
+
+        private double? numericUpDownValue = null;
+
+        public double? NumericUpDownValue
+        {
+            get => this.numericUpDownValue;
+            set => this.Set(ref this.numericUpDownValue, value);
         }
 
         public ICommand EndOfScrollReachedCmdWithParameter { get; }
@@ -405,15 +451,18 @@ namespace MetroDemo
         {
             if (Application.Current.MainWindow != null)
             {
-                var theme = ThemeManager.DetectTheme(Application.Current.MainWindow);
+                var theme = ThemeManager.Current.DetectTheme(Application.Current.MainWindow);
 
-                var resources = theme.Resources.Keys.Cast<object>()
-                                     .Where(key => theme.Resources[key] is SolidColorBrush)
-                                     .Select(key => key.ToString())
-                                     .OrderBy(s => s)
-                                     .ToList();
+                var resources = theme.LibraryThemes.First(x => x.Origin == "MahApps.Metro").Resources.MergedDictionaries.First();
 
-                return resources;
+                var brushResources = resources.Keys
+                                              .Cast<object>()
+                                              .Where(key => resources[key] is SolidColorBrush)
+                                              .Select(key => key.ToString())
+                                              .OrderBy(s => s)
+                                              .ToList();
+
+                return brushResources;
             }
 
             return Enumerable.Empty<string>();

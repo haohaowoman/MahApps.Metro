@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -85,21 +89,17 @@ namespace MahApps.Metro.Controls
         public static FrameworkElement GetImplementationRoot(DependencyObject dependencyObject)
         {
             Debug.Assert(dependencyObject != null, "DependencyObject should not be null.");
-            return (VisualTreeHelper.GetChildrenCount(dependencyObject) == 1) ?
-                VisualTreeHelper.GetChild(dependencyObject, 0) as FrameworkElement :
-                null;
+            return VisualTreeHelper.GetChildrenCount(dependencyObject) == 1
+                ? VisualTreeHelper.GetChild(dependencyObject, 0) as FrameworkElement
+                : null;
         }
 
         public static VisualStateGroup TryGetVisualStateGroup(DependencyObject dependencyObject, string groupName)
         {
             FrameworkElement root = GetImplementationRoot(dependencyObject);
-            if (root == null)
-            {
-                return null;
-            }
-
-            return VisualStateManager.GetVisualStateGroups(root)
-                .OfType<VisualStateGroup>().FirstOrDefault(group => string.CompareOrdinal(groupName, @group.Name) == 0);
+            return root == null
+                ? null
+                : VisualStateManager.GetVisualStateGroups(root)?.OfType<VisualStateGroup>().FirstOrDefault(group => string.CompareOrdinal(groupName, group.Name) == 0);
         }
     }
 }

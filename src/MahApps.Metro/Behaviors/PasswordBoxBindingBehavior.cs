@@ -1,8 +1,6 @@
-﻿//	--------------------------------------------------------------------
-//		Obtained from: WPFSmartLibrary
-//		For more information see : http://wpfsmartlibrary.codeplex.com/
-//		(by DotNetMastermind)
-//	--------------------------------------------------------------------
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel;
@@ -12,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using MahApps.Metro.Controls;
+using MahApps.Metro.ValueBoxes;
 using Microsoft.Xaml.Behaviors;
 
 namespace MahApps.Metro.Behaviors
@@ -50,6 +49,7 @@ namespace MahApps.Metro.Behaviors
                 {
                     targetPasswordBox.Password = (string)e.NewValue;
                 }
+
                 targetPasswordBox.PasswordChanged += PasswordBoxPasswordChanged;
             }
         }
@@ -149,9 +149,11 @@ namespace MahApps.Metro.Behaviors
                 {
                     selection.Changed -= this.PasswordBoxSelectionChanged;
                 }
+
                 this.AssociatedObject.Loaded -= this.PasswordBoxLoaded;
                 this.AssociatedObject.PasswordChanged -= PasswordBoxPasswordChanged;
             }
+
             base.OnDetaching();
         }
 
@@ -159,16 +161,16 @@ namespace MahApps.Metro.Behaviors
             = DependencyProperty.RegisterAttached("IsChanging",
                                                   typeof(bool),
                                                   typeof(PasswordBoxBindingBehavior),
-                                                  new UIPropertyMetadata(false));
+                                                  new UIPropertyMetadata(BooleanBoxes.FalseBox));
 
-        private static bool GetIsChanging(DependencyObject obj)
+        private static bool GetIsChanging(UIElement element)
         {
-            return (bool)obj.GetValue(IsChangingProperty);
+            return (bool)element.GetValue(IsChangingProperty);
         }
 
-        private static void SetIsChanging(DependencyObject obj, bool value)
+        private static void SetIsChanging(UIElement element, bool value)
         {
-            obj.SetValue(IsChangingProperty, value);
+            element.SetValue(IsChangingProperty, BooleanBoxes.Box(value));
         }
 
         private static readonly DependencyProperty SelectionProperty

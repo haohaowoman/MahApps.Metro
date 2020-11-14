@@ -1,4 +1,8 @@
-﻿using System.Windows;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Windows;
 using System.Windows.Data;
 using ControlzEx.Behaviors;
 using MahApps.Metro.Controls;
@@ -36,10 +40,10 @@ namespace MahApps.Metro.Behaviors
         {
             if (sender is MetroWindow window)
             {
+                window.SetIsHitTestVisibleInChromeProperty<UIElement>("PART_Icon");
+
                 if (window.ResizeMode != ResizeMode.NoResize)
                 {
-                    //window.SetIsHitTestVisibleInChromeProperty<Border>("PART_Border");
-                    window.SetIsHitTestVisibleInChromeProperty<UIElement>("PART_Icon");
                     window.SetWindowChromeResizeGripDirection("WindowResizeGrip", ResizeGripDirection.BottomRight);
                 }
             }

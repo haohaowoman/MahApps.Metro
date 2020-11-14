@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Windows;
@@ -13,6 +17,7 @@ using System.Reflection;
 using System.Windows.Data;
 using JetBrains.Annotations;
 using MahApps.Metro.Behaviors;
+using MahApps.Metro.ValueBoxes;
 
 namespace MahApps.Metro.Controls
 {
@@ -43,20 +48,20 @@ namespace MahApps.Metro.Controls
     /// </remarks>
     public class TextBoxHelper
     {
-        public static readonly DependencyProperty IsMonitoringProperty = DependencyProperty.RegisterAttached("IsMonitoring", typeof(bool), typeof(TextBoxHelper), new UIPropertyMetadata(false, OnIsMonitoringChanged));
+        public static readonly DependencyProperty IsMonitoringProperty = DependencyProperty.RegisterAttached("IsMonitoring", typeof(bool), typeof(TextBoxHelper), new UIPropertyMetadata(BooleanBoxes.FalseBox, OnIsMonitoringChanged));
         public static readonly DependencyProperty WatermarkProperty = DependencyProperty.RegisterAttached("Watermark", typeof(string), typeof(TextBoxHelper), new UIPropertyMetadata(string.Empty));
         public static readonly DependencyProperty WatermarkAlignmentProperty = DependencyProperty.RegisterAttached("WatermarkAlignment", typeof(TextAlignment), typeof(TextBoxHelper), new FrameworkPropertyMetadata(TextAlignment.Left, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender | FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty WatermarkTrimmingProperty = DependencyProperty.RegisterAttached("WatermarkTrimming", typeof(TextTrimming), typeof(TextBoxHelper), new FrameworkPropertyMetadata(TextTrimming.None, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty WatermarkWrappingProperty = DependencyProperty.RegisterAttached("WatermarkWrapping", typeof(TextWrapping), typeof(TextBoxHelper), new FrameworkPropertyMetadata(TextWrapping.NoWrap, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
-        public static readonly DependencyProperty UseFloatingWatermarkProperty = DependencyProperty.RegisterAttached("UseFloatingWatermark", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(false, ButtonCommandOrClearTextChanged));
+        public static readonly DependencyProperty UseFloatingWatermarkProperty = DependencyProperty.RegisterAttached("UseFloatingWatermark", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, ButtonCommandOrClearTextChanged));
         public static readonly DependencyProperty TextLengthProperty = DependencyProperty.RegisterAttached("TextLength", typeof(int), typeof(TextBoxHelper), new UIPropertyMetadata(0));
-        public static readonly DependencyProperty ClearTextButtonProperty = DependencyProperty.RegisterAttached("ClearTextButton", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(false, ButtonCommandOrClearTextChanged));
-        public static readonly DependencyProperty TextButtonProperty = DependencyProperty.RegisterAttached("TextButton", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(false, ButtonCommandOrClearTextChanged));
+        public static readonly DependencyProperty ClearTextButtonProperty = DependencyProperty.RegisterAttached("ClearTextButton", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, ButtonCommandOrClearTextChanged));
+        public static readonly DependencyProperty TextButtonProperty = DependencyProperty.RegisterAttached("TextButton", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, ButtonCommandOrClearTextChanged));
         public static readonly DependencyProperty ButtonsAlignmentProperty = DependencyProperty.RegisterAttached("ButtonsAlignment", typeof(ButtonsAlignment), typeof(TextBoxHelper), new FrameworkPropertyMetadata(ButtonsAlignment.Right, FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsMeasure));
         /// <summary>
         /// The clear text button behavior property. It sets a click event to the button if the value is true.
         /// </summary>
-        public static readonly DependencyProperty IsClearTextButtonBehaviorEnabledProperty = DependencyProperty.RegisterAttached("IsClearTextButtonBehaviorEnabled", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(false, IsClearTextButtonBehaviorEnabledChanged));
+        public static readonly DependencyProperty IsClearTextButtonBehaviorEnabledProperty = DependencyProperty.RegisterAttached("IsClearTextButtonBehaviorEnabled", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, IsClearTextButtonBehaviorEnabledChanged));
 
         /// <summary>
         /// This property can be used to set the button width (PART_ClearText) of TextBox, PasswordBox, ComboBox, NumericUpDown
@@ -70,12 +75,12 @@ namespace MahApps.Metro.Controls
         public static readonly DependencyProperty ButtonFontFamilyProperty = DependencyProperty.RegisterAttached("ButtonFontFamily", typeof(FontFamily), typeof(TextBoxHelper), new FrameworkPropertyMetadata(new FontFamilyConverter().ConvertFromString("Marlett")));
         public static readonly DependencyProperty ButtonFontSizeProperty = DependencyProperty.RegisterAttached("ButtonFontSize", typeof(double), typeof(TextBoxHelper), new FrameworkPropertyMetadata(SystemFonts.MessageFontSize));
 
-        public static readonly DependencyProperty SelectAllOnFocusProperty = DependencyProperty.RegisterAttached("SelectAllOnFocus", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(false));
-        public static readonly DependencyProperty IsWaitingForDataProperty = DependencyProperty.RegisterAttached("IsWaitingForData", typeof(bool), typeof(TextBoxHelper), new UIPropertyMetadata(false));
+        public static readonly DependencyProperty SelectAllOnFocusProperty = DependencyProperty.RegisterAttached("SelectAllOnFocus", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox));
+        public static readonly DependencyProperty IsWaitingForDataProperty = DependencyProperty.RegisterAttached("IsWaitingForData", typeof(bool), typeof(TextBoxHelper), new UIPropertyMetadata(BooleanBoxes.FalseBox));
 
-        public static readonly DependencyProperty HasTextProperty = DependencyProperty.RegisterAttached("HasText", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty HasTextProperty = DependencyProperty.RegisterAttached("HasText", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsRender));
 
-        public static readonly DependencyProperty IsSpellCheckContextMenuEnabledProperty = DependencyProperty.RegisterAttached("IsSpellCheckContextMenuEnabled", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(default(bool), IsSpellCheckContextMenuEnabledChanged));
+        public static readonly DependencyProperty IsSpellCheckContextMenuEnabledProperty = DependencyProperty.RegisterAttached("IsSpellCheckContextMenuEnabled", typeof(bool), typeof(TextBoxHelper), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, IsSpellCheckContextMenuEnabledChanged));
 
         /// <summary>
         /// This property can be used to retrieve the watermark using the <see cref="DisplayAttribute"/> of bound property.
@@ -83,7 +88,7 @@ namespace MahApps.Metro.Controls
         /// <remarks>
         /// Setting this property to true will uses reflection.
         /// </remarks>
-        public static readonly DependencyProperty AutoWatermarkProperty = DependencyProperty.RegisterAttached("AutoWatermark", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(default(bool), OnAutoWatermarkChanged));
+        public static readonly DependencyProperty AutoWatermarkProperty = DependencyProperty.RegisterAttached("AutoWatermark", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(BooleanBoxes.FalseBox, OnAutoWatermarkChanged));
 
         private static readonly Dictionary<Type, DependencyProperty> AutoWatermarkPropertyMapping = new Dictionary<Type, DependencyProperty>
                                                                                                     {
@@ -93,7 +98,9 @@ namespace MahApps.Metro.Controls
                                                                                                         { typeof(HotKeyBox), HotKeyBox.HotKeyProperty },
                                                                                                         { typeof(DatePicker), DatePicker.SelectedDateProperty },
                                                                                                         { typeof(TimePicker), TimePickerBase.SelectedDateTimeProperty },
-                                                                                                        { typeof(DateTimePicker), DateTimePicker.SelectedDateTimeProperty }
+                                                                                                        { typeof(DateTimePicker), DateTimePicker.SelectedDateTimeProperty },
+                                                                                                        { typeof(ColorPicker), ColorPickerBase.SelectedColorProperty },
+                                                                                                        { typeof(ColorCanvas), ColorPickerBase.SelectedColorProperty }
                                                                                                     };
 
         /// <summary>
@@ -109,7 +116,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(TextBoxBase))]
         public static void SetIsSpellCheckContextMenuEnabled(UIElement element, bool value)
         {
-            element.SetValue(IsSpellCheckContextMenuEnabledProperty, value);
+            element.SetValue(IsSpellCheckContextMenuEnabledProperty, BooleanBoxes.Box(value));
         }
 
         [Category(AppName.MahApps)]
@@ -119,6 +126,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(TimePickerBase))]
         [AttachedPropertyBrowsableForType(typeof(NumericUpDown))]
         [AttachedPropertyBrowsableForType(typeof(HotKeyBox))]
+        [AttachedPropertyBrowsableForType(typeof(ColorPicker))]
         public static bool GetAutoWatermark(DependencyObject element)
         {
             return (bool)element.GetValue(AutoWatermarkProperty);
@@ -138,7 +146,7 @@ namespace MahApps.Metro.Controls
         /// </list></remarks>
         public static void SetAutoWatermark(DependencyObject element, bool value)
         {
-            element.SetValue(AutoWatermarkProperty, value);
+            element.SetValue(AutoWatermarkProperty, BooleanBoxes.Box(value));
         }
 
         private static void OnAutoWatermarkChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -222,7 +230,7 @@ namespace MahApps.Metro.Controls
 
             if (e.OldValue != e.NewValue)
             {
-                tb.SetCurrentValue(SpellCheck.IsEnabledProperty, (bool)e.NewValue);
+                tb.SetCurrentValue(SpellCheck.IsEnabledProperty, BooleanBoxes.Box((bool)e.NewValue));
                 if ((bool)e.NewValue)
                 {
                     tb.ContextMenuOpening += TextBoxBaseContextMenuOpening;
@@ -354,7 +362,7 @@ namespace MahApps.Metro.Controls
 
         public static void SetIsWaitingForData(DependencyObject obj, bool value)
         {
-            obj.SetValue(IsWaitingForDataProperty, value);
+            obj.SetValue(IsWaitingForDataProperty, BooleanBoxes.Box(value));
         }
 
         [Category(AppName.MahApps)]
@@ -367,7 +375,7 @@ namespace MahApps.Metro.Controls
 
         public static void SetSelectAllOnFocus(DependencyObject obj, bool value)
         {
-            obj.SetValue(SelectAllOnFocusProperty, value);
+            obj.SetValue(SelectAllOnFocusProperty, BooleanBoxes.Box(value));
         }
 
         public static bool GetSelectAllOnFocus(DependencyObject obj)
@@ -377,7 +385,7 @@ namespace MahApps.Metro.Controls
 
         public static void SetIsMonitoring(DependencyObject obj, bool value)
         {
-            obj.SetValue(IsMonitoringProperty, value);
+            obj.SetValue(IsMonitoringProperty, BooleanBoxes.Box(value));
         }
 
         [Category(AppName.MahApps)]
@@ -388,6 +396,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(TimePickerBase))]
         [AttachedPropertyBrowsableForType(typeof(NumericUpDown))]
         [AttachedPropertyBrowsableForType(typeof(HotKeyBox))]
+        [AttachedPropertyBrowsableForType(typeof(ColorPicker))]
         public static string GetWatermark(DependencyObject obj)
         {
             return (string)obj.GetValue(WatermarkProperty);
@@ -401,6 +410,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(TimePickerBase))]
         [AttachedPropertyBrowsableForType(typeof(NumericUpDown))]
         [AttachedPropertyBrowsableForType(typeof(HotKeyBox))]
+        [AttachedPropertyBrowsableForType(typeof(ColorPicker))]
         public static void SetWatermark(DependencyObject obj, string value)
         {
             obj.SetValue(WatermarkProperty, value);
@@ -420,6 +430,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(TimePickerBase))]
         [AttachedPropertyBrowsableForType(typeof(NumericUpDown))]
         [AttachedPropertyBrowsableForType(typeof(HotKeyBox))]
+        [AttachedPropertyBrowsableForType(typeof(ColorPicker))]
         public static TextAlignment GetWatermarkAlignment(DependencyObject obj)
         {
             return (TextAlignment)obj.GetValue(WatermarkAlignmentProperty);
@@ -436,6 +447,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(TimePickerBase))]
         [AttachedPropertyBrowsableForType(typeof(NumericUpDown))]
         [AttachedPropertyBrowsableForType(typeof(HotKeyBox))]
+        [AttachedPropertyBrowsableForType(typeof(ColorPicker))]
         public static void SetWatermarkAlignment(DependencyObject obj, TextAlignment value)
         {
             obj.SetValue(WatermarkAlignmentProperty, value);
@@ -455,6 +467,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(TimePickerBase))]
         [AttachedPropertyBrowsableForType(typeof(NumericUpDown))]
         [AttachedPropertyBrowsableForType(typeof(HotKeyBox))]
+        [AttachedPropertyBrowsableForType(typeof(ColorPicker))]
         public static TextTrimming GetWatermarkTrimming(DependencyObject obj)
         {
             return (TextTrimming)obj.GetValue(WatermarkTrimmingProperty);
@@ -471,6 +484,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(TimePickerBase))]
         [AttachedPropertyBrowsableForType(typeof(NumericUpDown))]
         [AttachedPropertyBrowsableForType(typeof(HotKeyBox))]
+        [AttachedPropertyBrowsableForType(typeof(ColorPicker))]
         public static void SetWatermarkTrimming(DependencyObject obj, TextTrimming value)
         {
             obj.SetValue(WatermarkTrimmingProperty, value);
@@ -504,6 +518,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(ComboBox))]
         [AttachedPropertyBrowsableForType(typeof(NumericUpDown))]
         [AttachedPropertyBrowsableForType(typeof(HotKeyBox))]
+        [AttachedPropertyBrowsableForType(typeof(ColorPicker))]
         public static bool GetUseFloatingWatermark(DependencyObject obj)
         {
             return (bool)obj.GetValue(UseFloatingWatermarkProperty);
@@ -511,7 +526,7 @@ namespace MahApps.Metro.Controls
 
         public static void SetUseFloatingWatermark(DependencyObject obj, bool value)
         {
-            obj.SetValue(UseFloatingWatermarkProperty, value);
+            obj.SetValue(UseFloatingWatermarkProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>
@@ -530,7 +545,7 @@ namespace MahApps.Metro.Controls
 
         public static void SetHasText(DependencyObject obj, bool value)
         {
-            obj.SetValue(HasTextProperty, value);
+            obj.SetValue(HasTextProperty, BooleanBoxes.Box(value));
         }
 
         private static void OnIsMonitoringChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -642,7 +657,7 @@ namespace MahApps.Metro.Controls
             {
                 var value = funcTextLength(sender);
                 sender.SetValue(TextLengthProperty, value);
-                sender.SetValue(HasTextProperty, value >= 1);
+                sender.SetValue(HasTextProperty, BooleanBoxes.Box(value >= 1));
             }
         }
 
@@ -717,7 +732,7 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public static void SetClearTextButton(DependencyObject obj, bool value)
         {
-            obj.SetValue(ClearTextButtonProperty, value);
+            obj.SetValue(ClearTextButtonProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>
@@ -734,7 +749,7 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public static void SetTextButton(DependencyObject obj, bool value)
         {
-            obj.SetValue(TextButtonProperty, value);
+            obj.SetValue(TextButtonProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>
@@ -770,7 +785,7 @@ namespace MahApps.Metro.Controls
         [AttachedPropertyBrowsableForType(typeof(ButtonBase))]
         public static void SetIsClearTextButtonBehaviorEnabled(Button obj, bool value)
         {
-            obj.SetValue(IsClearTextButtonBehaviorEnabledProperty, value);
+            obj.SetValue(IsClearTextButtonBehaviorEnabledProperty, BooleanBoxes.Box(value));
         }
 
         [Category(AppName.MahApps)]
@@ -881,12 +896,17 @@ namespace MahApps.Metro.Controls
         {
             var button = (Button)sender;
 
-            var parent = button.GetAncestors().FirstOrDefault(a => a is RichTextBox || a is TextBox || a is PasswordBox || a is ComboBox);
+            var parent = button.GetAncestors().FirstOrDefault(a => a is RichTextBox || a is TextBox || a is PasswordBox || a is ComboBox || a is ColorPickerBase);
 
             var command = GetButtonCommand(parent);
             var commandParameter = GetButtonCommandParameter(parent) ?? parent;
             if (command != null && command.CanExecute(commandParameter))
             {
+                if (parent is TextBox textBox)
+                {
+                    textBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+                }
+
                 command.Execute(commandParameter);
             }
 
@@ -917,6 +937,10 @@ namespace MahApps.Metro.Controls
 
                     comboBox.SelectedItem = null;
                     comboBox.GetBindingExpression(ComboBox.SelectedItemProperty)?.UpdateSource();
+                }
+                else if (parent is ColorPickerBase colorPicker)
+                {
+                    colorPicker.SetCurrentValue(ColorPickerBase.SelectedColorProperty, null);
                 }
             }
         }
@@ -992,7 +1016,7 @@ namespace MahApps.Metro.Controls
         {
             if (sender is ComboBox comboBox)
             {
-                comboBox.SetValue(HasTextProperty, !string.IsNullOrWhiteSpace(comboBox.Text) || comboBox.SelectedItem != null);
+                comboBox.SetValue(HasTextProperty, BooleanBoxes.Box(!string.IsNullOrWhiteSpace(comboBox.Text) || comboBox.SelectedItem != null));
             }
         }
     }

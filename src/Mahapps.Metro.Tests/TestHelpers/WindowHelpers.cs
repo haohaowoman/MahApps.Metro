@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,19 +24,23 @@ namespace MahApps.Metro.Tests.TestHelpers
                              ShowInTaskbar = false
                          };
 
-            changeAddiotionalProperties?.Invoke(window);
+            void OnLoaded(object sender, RoutedEventArgs e)
+            {
+                window.Loaded -= OnLoaded;
+                changeAddiotionalProperties?.Invoke(window);
+            }
+
+            window.Loaded += OnLoaded;
 
             var completionSource = new TaskCompletionSource<T>();
 
-            EventHandler handler = null;
+            void OnActivated(object sender, EventArgs args)
+            {
+                window.Activated -= OnActivated;
+                completionSource.SetResult(window);
+            }
 
-            handler = (sender, args) =>
-                {
-                    window.Activated -= handler;
-                    completionSource.SetResult(window);
-                };
-
-            window.Activated += handler;
+            window.Activated += OnActivated;
 
             window.Show();
 

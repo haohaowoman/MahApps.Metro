@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -8,6 +12,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using MahApps.Metro.ValueBoxes;
 
 namespace MahApps.Metro.Controls
 {
@@ -40,7 +45,7 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>Identifies the <see cref="MouseHoverBorderEnabled"/> dependency property.</summary>
-        public static readonly DependencyProperty MouseHoverBorderEnabledProperty = DependencyProperty.Register(nameof(MouseHoverBorderEnabled), typeof(bool), typeof(FlipView), new PropertyMetadata(true));
+        public static readonly DependencyProperty MouseHoverBorderEnabledProperty = DependencyProperty.Register(nameof(MouseHoverBorderEnabled), typeof(bool), typeof(FlipView), new PropertyMetadata(BooleanBoxes.TrueBox));
 
         /// <summary>
         /// Gets or sets a value indicating whether the border for mouse over effect is enabled or not.
@@ -48,7 +53,7 @@ namespace MahApps.Metro.Controls
         public bool MouseHoverBorderEnabled
         {
             get => (bool)this.GetValue(MouseHoverBorderEnabledProperty);
-            set => this.SetValue(MouseHoverBorderEnabledProperty, value);
+            set => this.SetValue(MouseHoverBorderEnabledProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>Identifies the <see cref="MouseHoverBorderThickness"/> dependency property.</summary>
@@ -64,7 +69,7 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>Identifies the <see cref="CircularNavigation"/> dependency property.</summary>
-        public static readonly DependencyProperty CircularNavigationProperty = DependencyProperty.Register(nameof(CircularNavigation), typeof(bool), typeof(FlipView), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender, (d, e) => ((FlipView)d).DetectControlButtonsStatus()));
+        public static readonly DependencyProperty CircularNavigationProperty = DependencyProperty.Register(nameof(CircularNavigation), typeof(bool), typeof(FlipView), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, FrameworkPropertyMetadataOptions.AffectsRender, (d, e) => ((FlipView)d).DetectControlButtonsStatus()));
 
         /// <summary>
         /// Gets or sets a value indicating whether the navigation is circular, so you get the first after last and the last before first.
@@ -72,7 +77,7 @@ namespace MahApps.Metro.Controls
         public bool CircularNavigation
         {
             get => (bool)this.GetValue(CircularNavigationProperty);
-            set => this.SetValue(CircularNavigationProperty, value);
+            set => this.SetValue(CircularNavigationProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>Identifies the <see cref="NavigationButtonsPosition"/> dependency property.</summary>
@@ -151,7 +156,7 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>Identifies the <see cref="IsBannerEnabled"/> dependency property.</summary>
-        public static readonly DependencyProperty IsBannerEnabledProperty = DependencyProperty.Register(nameof(IsBannerEnabled), typeof(bool), typeof(FlipView), new UIPropertyMetadata(true, OnIsBannerEnabledPropertyChangedCallback));
+        public static readonly DependencyProperty IsBannerEnabledProperty = DependencyProperty.Register(nameof(IsBannerEnabled), typeof(bool), typeof(FlipView), new UIPropertyMetadata(BooleanBoxes.TrueBox, OnIsBannerEnabledPropertyChangedCallback));
 
         /// <summary>
         /// Gets or sets whether the banner is visible or not.
@@ -159,7 +164,7 @@ namespace MahApps.Metro.Controls
         public bool IsBannerEnabled
         {
             get => (bool)this.GetValue(IsBannerEnabledProperty);
-            set => this.SetValue(IsBannerEnabledProperty, value);
+            set => this.SetValue(IsBannerEnabledProperty, BooleanBoxes.Box(value));
         }
 
         private static void OnIsBannerEnabledPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -195,7 +200,7 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>Identifies the <see cref="IsNavigationEnabled"/> dependency property.</summary>
-        public static readonly DependencyProperty IsNavigationEnabledProperty = DependencyProperty.Register(nameof(IsNavigationEnabled), typeof(bool), typeof(FlipView), new PropertyMetadata(true, (d, e) => ((FlipView)d).DetectControlButtonsStatus()));
+        public static readonly DependencyProperty IsNavigationEnabledProperty = DependencyProperty.Register(nameof(IsNavigationEnabled), typeof(bool), typeof(FlipView), new PropertyMetadata(BooleanBoxes.TrueBox, (d, e) => ((FlipView)d).DetectControlButtonsStatus()));
 
         /// <summary>
         /// Gets or sets whether the navigation button are visible or not.
@@ -203,7 +208,7 @@ namespace MahApps.Metro.Controls
         public bool IsNavigationEnabled
         {
             get => (bool)this.GetValue(IsNavigationEnabledProperty);
-            set => this.SetValue(IsNavigationEnabledProperty, value);
+            set => this.SetValue(IsNavigationEnabledProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>Identifies the <see cref="BannerText"/> dependency property.</summary>

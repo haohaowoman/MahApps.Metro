@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Windows;
 using System.Windows.Controls;
 
@@ -5,7 +9,7 @@ namespace MahApps.Metro.Controls
 {
     public class PivotItem : ContentControl
     {
-        public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register("Header", typeof(string), typeof(PivotItem), new PropertyMetadata(default(string)));
+        public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(PivotItem), new PropertyMetadata(default(string)));
 
         public string Header
         {

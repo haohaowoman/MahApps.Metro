@@ -1,9 +1,13 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Windows;
 
 namespace MahApps.Metro.Controls
 {
     /// <summary>
-    /// EventArgs used for the <see cref="HamburgerMenu"/> ItemClick and OptionsItemClick event.
+    /// EventArgs used for the <see cref="HamburgerMenu.ItemClick"/> and <see cref="HamburgerMenu.OptionsItemClick"/> events.
     /// </summary>
     public class ItemClickEventArgs : RoutedEventArgs
     {
@@ -25,18 +29,18 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>
-        /// Gets the clicked item
+        /// Gets the clicked item (options item).
         /// </summary>
         public object ClickedItem { get; internal set; }
     }
 
     /// <summary>
-    /// RoutedEventHandler used for the <see cref="HamburgerMenu"/> ItemClick and OptionsItemClick event.
+    /// RoutedEventHandler used for the <see cref="HamburgerMenu.ItemClick"/> and <see cref="HamburgerMenu.OptionsItemClick"/> events.
     /// </summary>
     public delegate void ItemClickRoutedEventHandler(object sender, ItemClickEventArgs args);
 
     /// <summary>
-    /// EventArgs used for the <see cref="HamburgerMenu"/> ItemInvoked event.
+    /// EventArgs used for the <see cref="HamburgerMenu.ItemInvoked"/> event.
     /// </summary>
     public class HamburgerMenuItemInvokedEventArgs : RoutedEventArgs
     {
@@ -58,7 +62,7 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>
-        /// Gets the invoked item
+        /// Gets the invoked item.
         /// </summary>
         public object InvokedItem { get; internal set; }
 
@@ -69,7 +73,7 @@ namespace MahApps.Metro.Controls
     }
 
     /// <summary>
-    /// RoutedEventHandler used for the <see cref="HamburgerMenu"/> ItemInvoked event.
+    /// RoutedEventHandler used for the <see cref="HamburgerMenu.ItemInvoked"/> event.
     /// </summary>
     public delegate void HamburgerMenuItemInvokedRoutedEventHandler(object sender, HamburgerMenuItemInvokedEventArgs args);
 }

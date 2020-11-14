@@ -1,12 +1,16 @@
-﻿using System.Windows.Controls;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using MahApps.Metro.Controls;
+using MahApps.Metro.ValueBoxes;
 using Microsoft.Xaml.Behaviors;
 
 namespace MahApps.Metro.Behaviors
 {
-
     public class DatePickerTextBoxBehavior : Behavior<DatePickerTextBox>
     {
         protected override void OnAttached()
@@ -29,7 +33,7 @@ namespace MahApps.Metro.Behaviors
 
         private void SetHasTextProperty()
         {
-            this.AssociatedObject.TemplatedParent?.SetValue(TextBoxHelper.HasTextProperty, this.AssociatedObject.Text.Length > 0);
+            this.AssociatedObject.TemplatedParent?.SetCurrentValue(TextBoxHelper.HasTextProperty, BooleanBoxes.Box(this.AssociatedObject.Text.Length > 0));
         }
     }
 }

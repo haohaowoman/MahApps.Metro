@@ -6,6 +6,8 @@
         <AssemblyName>MahApps.Metro.Caliburn.Demo</AssemblyName>
         <RootNamespace>Caliburn.Metro.Demo</RootNamespace>
         <DisableFody Condition=" '$(Configuration)' == 'Debug' or $(TargetFramework.StartsWith('netcoreapp')) ">true</DisableFody>
+        <!-- Workaround for https://github.com/dotnet/sourcelink/issues/91 -->
+        <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
     </PropertyGroup>
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
@@ -20,13 +22,13 @@
         <Reference Include="System.ComponentModel.Composition" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MahApps.Metro.IconPacks" Version="3.*" />
+        <PackageReference Include="MahApps.Metro.IconPacks" Version="4.*" />
         <PackageReference Include="Caliburn.Micro" Version="3.*" />
         <PackageReference Include="Fody" Version="6.*">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Costura.Fody" Version="4.*" />
+        <PackageReference Include="Costura.Fody" Version="4.*" PrivateAssets="All" />
     </ItemGroup>
     <ItemGroup>
         <None Include="app.manifest" />

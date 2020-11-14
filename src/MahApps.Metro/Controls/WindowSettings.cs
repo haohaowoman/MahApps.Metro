@@ -1,4 +1,8 @@
-﻿using ControlzEx.Standard;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using ControlzEx.Standard;
 using System.Configuration;
 using System.Windows;
 
@@ -51,9 +55,10 @@ namespace MahApps.Metro.Controls
                 {
                     return ((WINDOWPLACEMENT)this["Placement"]);
                 }
+
                 return null;
             }
-            set { this["Placement"] = value; }
+            set => this["Placement"] = value;
         }
 #pragma warning restore 618
 
@@ -79,11 +84,13 @@ namespace MahApps.Metro.Controls
                     {
                         ex = ex.InnerException as ConfigurationErrorsException;
                     }
-                    throw new MahAppsException(string.Format("The settings file '{0}' seems to be corrupted", filename ?? "<unknown>"), ex);
+
+                    throw new MahAppsException($"The settings file '{filename ?? "<unknown>"}' seems to be corrupted", ex);
                 }
+
                 return true;
             }
-            set { this["UpgradeSettings"] = value; }
+            set => this["UpgradeSettings"] = value;
         }
     }
 }

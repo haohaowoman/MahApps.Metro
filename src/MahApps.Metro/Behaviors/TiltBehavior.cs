@@ -1,10 +1,16 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using ControlzEx.Theming;
 using MahApps.Metro.Controls;
+using MahApps.Metro.ValueBoxes;
 using Microsoft.Xaml.Behaviors;
 
 namespace MahApps.Metro.Behaviors
@@ -16,12 +22,12 @@ namespace MahApps.Metro.Behaviors
             = DependencyProperty.Register(nameof(KeepDragging),
                                           typeof(bool),
                                           typeof(TiltBehavior),
-                                          new PropertyMetadata(true));
+                                          new PropertyMetadata(BooleanBoxes.TrueBox));
 
         public bool KeepDragging
         {
             get => (bool)this.GetValue(KeepDraggingProperty);
-            set => this.SetValue(KeepDraggingProperty, value);
+            set => this.SetValue(KeepDraggingProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>Identifies the <see cref="TiltFactor"/> dependency property.</summary>
@@ -109,18 +115,18 @@ namespace MahApps.Metro.Behaviors
             this.RotatorParent.Child = this.attachedElement;
 
             CompositionTarget.Rendering += this.CompositionTargetRendering;
-            ThemeManager.IsThemeChanged += this.ThemeManagerIsThemeChanged;
+            ThemeManager.Current.ThemeChanged += this.ThemeManagerIsThemeChanged;
         }
 
-        private void ThemeManagerIsThemeChanged(object sender, OnThemeChangedEventArgs e)
+        private void ThemeManagerIsThemeChanged(object sender, ThemeChangedEventArgs e)
         {
-            this.RotatorParent?.Refresh();
+            this.Invoke(() => { this.RotatorParent?.Refresh(); });
         }
 
         protected override void OnDetaching()
         {
             CompositionTarget.Rendering -= this.CompositionTargetRendering;
-            ThemeManager.IsThemeChanged -= this.ThemeManagerIsThemeChanged;
+            ThemeManager.Current.ThemeChanged -= this.ThemeManagerIsThemeChanged;
             base.OnDetaching();
         }
 

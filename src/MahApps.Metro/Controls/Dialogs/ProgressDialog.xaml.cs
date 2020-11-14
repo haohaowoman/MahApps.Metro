@@ -1,6 +1,11 @@
-﻿using System.Threading;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
+using MahApps.Metro.ValueBoxes;
 
 namespace MahApps.Metro.Controls.Dialogs
 {
@@ -19,12 +24,12 @@ namespace MahApps.Metro.Controls.Dialogs
         }
 
         /// <summary>Identifies the <see cref="IsCancelable"/> dependency property.</summary>
-        public static readonly DependencyProperty IsCancelableProperty = DependencyProperty.Register(nameof(IsCancelable), typeof(bool), typeof(ProgressDialog), new PropertyMetadata(default(bool), (s, e) => { ((ProgressDialog)s).PART_NegativeButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Hidden; }));
+        public static readonly DependencyProperty IsCancelableProperty = DependencyProperty.Register(nameof(IsCancelable), typeof(bool), typeof(ProgressDialog), new PropertyMetadata(BooleanBoxes.FalseBox, (s, e) => { ((ProgressDialog)s).PART_NegativeButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Hidden; }));
 
         public bool IsCancelable
         {
             get { return (bool)this.GetValue(IsCancelableProperty); }
-            set { this.SetValue(IsCancelableProperty, value); }
+            set { this.SetValue(IsCancelableProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>Identifies the <see cref="NegativeButtonText"/> dependency property.</summary>
@@ -64,7 +69,7 @@ namespace MahApps.Metro.Controls.Dialogs
         protected override void OnLoaded()
         {
             this.NegativeButtonText = this.DialogSettings.NegativeButtonText;
-            this.SetResourceReference(ProgressBarForegroundProperty, this.DialogSettings.ColorScheme == MetroDialogColorScheme.Theme ? "MahApps.Brushes.Accent" : "MahApps.Brushes.Black");
+            this.SetResourceReference(ProgressBarForegroundProperty, this.DialogSettings.ColorScheme == MetroDialogColorScheme.Theme ? "MahApps.Brushes.Accent" : "MahApps.Brushes.ThemeForeground");
         }
 
         internal CancellationToken CancellationToken => this.DialogSettings.CancellationToken;

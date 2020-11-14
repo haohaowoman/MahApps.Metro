@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -15,10 +19,10 @@ namespace MahApps.Metro.Controls
         private PivotItem selectedItem;
         private ScrollViewerOffsetMediator mediator;
         internal int internalIndex;
-        public static readonly RoutedEvent SelectionChangedEvent = EventManager.RegisterRoutedEvent("SelectionChanged", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(Pivot));
-        public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register("Header", typeof(string), typeof(Pivot), new PropertyMetadata(default(string)));
-        public static readonly DependencyProperty HeaderTemplateProperty = DependencyProperty.Register("HeaderTemplate", typeof(DataTemplate), typeof(Pivot));
-        public static readonly DependencyProperty SelectedIndexProperty = DependencyProperty.Register("SelectedIndex", typeof(int), typeof(Pivot), new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, SelectedItemChanged));
+        public static readonly RoutedEvent SelectionChangedEvent = EventManager.RegisterRoutedEvent(nameof(SelectionChanged), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(Pivot));
+        public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(Pivot), new PropertyMetadata(default(string)));
+        public static readonly DependencyProperty HeaderTemplateProperty = DependencyProperty.Register(nameof(HeaderTemplate), typeof(DataTemplate), typeof(Pivot));
+        public static readonly DependencyProperty SelectedIndexProperty = DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(Pivot), new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, SelectedItemChanged));
 
         public DataTemplate HeaderTemplate
         {
@@ -60,6 +64,7 @@ namespace MahApps.Metro.Controls
                     internalIndex = index;
                     break;
                 }
+
                 widthToScroll += ((PivotItem)Items[index]).ActualWidth;
             }
 
@@ -96,6 +101,7 @@ namespace MahApps.Metro.Controls
                 scroller.ScrollChanged += scroller_ScrollChanged;
                 scroller.PreviewMouseWheel += scroller_MouseWheel;
             }
+
             if (headers != null)
             {
                 headers.SelectionChanged += headers_SelectionChanged;
@@ -130,8 +136,10 @@ namespace MahApps.Metro.Controls
 
                         RaiseEvent(new RoutedEventArgs(SelectionChangedEvent));
                     }
+
                     break;
                 }
+
                 position += widthOfItem;
             }
         }

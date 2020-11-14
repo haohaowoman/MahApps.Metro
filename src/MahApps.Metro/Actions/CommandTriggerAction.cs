@@ -1,6 +1,11 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Windows;
 using System.Windows.Input;
+using MahApps.Metro.ValueBoxes;
 using Microsoft.Xaml.Behaviors;
 
 namespace MahApps.Metro.Actions
@@ -117,7 +122,7 @@ namespace MahApps.Metro.Actions
             }
 
             var command = this.Command;
-            this.AssociatedObject.SetCurrentValue(UIElement.IsEnabledProperty, command == null || command.CanExecute(this.GetCommandParameter()));
+            this.AssociatedObject.SetCurrentValue(UIElement.IsEnabledProperty, BooleanBoxes.Box(command == null || command.CanExecute(this.GetCommandParameter())));
         }
 
         private void OnCommandCanExecuteChanged(object sender, EventArgs e)

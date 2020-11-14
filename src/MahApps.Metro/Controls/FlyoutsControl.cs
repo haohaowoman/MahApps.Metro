@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ControlzEx;
+using MahApps.Metro.ValueBoxes;
 
 namespace MahApps.Metro.Controls
 {
@@ -13,11 +18,11 @@ namespace MahApps.Metro.Controls
     /// A FlyoutsControl is for displaying flyouts in a MetroWindow.
     /// <see cref="MetroWindow"/>
     /// </summary>
-    [StyleTypedProperty(Property = "ItemContainerStyle", StyleTargetType = typeof(Flyout))]
+    [StyleTypedProperty(Property = nameof(ItemContainerStyle), StyleTargetType = typeof(Flyout))]
     public class FlyoutsControl : ItemsControl
     {
-        public static readonly DependencyProperty OverrideExternalCloseButtonProperty = DependencyProperty.Register("OverrideExternalCloseButton", typeof(MouseButton?), typeof(FlyoutsControl), new PropertyMetadata(null));
-        public static readonly DependencyProperty OverrideIsPinnedProperty = DependencyProperty.Register("OverrideIsPinned", typeof(bool), typeof(FlyoutsControl), new PropertyMetadata(false));
+        public static readonly DependencyProperty OverrideExternalCloseButtonProperty = DependencyProperty.Register(nameof(OverrideExternalCloseButton), typeof(MouseButton?), typeof(FlyoutsControl), new PropertyMetadata(null));
+        public static readonly DependencyProperty OverrideIsPinnedProperty = DependencyProperty.Register(nameof(OverrideIsPinned), typeof(bool), typeof(FlyoutsControl), new PropertyMetadata(BooleanBoxes.FalseBox));
 
         /// <summary>
         /// Gets/sets whether <see cref="MahApps.Metro.Controls.Flyout.ExternalCloseButton"/> is ignored and all flyouts behave as if it was set to the value of this property.
@@ -34,7 +39,7 @@ namespace MahApps.Metro.Controls
         public bool OverrideIsPinned
         {
             get { return (bool)GetValue(OverrideIsPinnedProperty); }
-            set { SetValue(OverrideIsPinnedProperty, value); }
+            set { SetValue(OverrideIsPinnedProperty, BooleanBoxes.Box(value)); }
         }
 
         static FlyoutsControl()
@@ -84,7 +89,7 @@ namespace MahApps.Metro.Controls
 
         protected override void ClearContainerForItemOverride(DependencyObject element, object item)
         {
-            ((Flyout) element).CleanUp(this);
+            ((Flyout)element).CleanUp(this);
             base.ClearContainerForItemOverride(element, item);
         }
 
@@ -137,7 +142,8 @@ namespace MahApps.Metro.Controls
 
         private IEnumerable<Flyout> GetFlyouts(IEnumerable items)
         {
-            return from object item in items select this.GetFlyout(item);
+            return from object item in items
+                   select this.GetFlyout(item);
         }
 
         private void ReorderZIndices(Flyout lastChanged)

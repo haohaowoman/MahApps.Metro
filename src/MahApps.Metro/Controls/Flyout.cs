@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Windows;
 using System.Windows.Automation.Peers;
@@ -8,11 +12,12 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using ControlzEx;
+using ControlzEx.Theming;
+using MahApps.Metro.Automation.Peers;
+using MahApps.Metro.ValueBoxes;
 
 namespace MahApps.Metro.Controls
 {
-    using System.Linq;
-
     /// <summary>
     /// A sliding panel control that is hosted in a MetroWindow via a FlyoutsControl.
     /// <see cref="MetroWindow"/>
@@ -27,8 +32,8 @@ namespace MahApps.Metro.Controls
         /// An event that is raised when IsOpen changes.
         /// </summary>
         public static readonly RoutedEvent IsOpenChangedEvent =
-            EventManager.RegisterRoutedEvent("IsOpenChanged", RoutingStrategy.Bubble,
-                typeof(RoutedEventHandler), typeof(Flyout));
+            EventManager.RegisterRoutedEvent(nameof(IsOpenChanged), RoutingStrategy.Bubble,
+                                             typeof(RoutedEventHandler), typeof(Flyout));
 
         public event RoutedEventHandler IsOpenChanged
         {
@@ -37,11 +42,24 @@ namespace MahApps.Metro.Controls
         }
 
         /// <summary>
+        /// An event that is raised when the opening animation has finished.
+        /// </summary>
+        public static readonly RoutedEvent OpeningFinishedEvent =
+            EventManager.RegisterRoutedEvent(nameof(OpeningFinished), RoutingStrategy.Bubble,
+                                             typeof(RoutedEventHandler), typeof(Flyout));
+
+        public event RoutedEventHandler OpeningFinished
+        {
+            add { this.AddHandler(OpeningFinishedEvent, value); }
+            remove { this.RemoveHandler(OpeningFinishedEvent, value); }
+        }
+
+        /// <summary>
         /// An event that is raised when the closing animation has finished.
         /// </summary>
         public static readonly RoutedEvent ClosingFinishedEvent =
-            EventManager.RegisterRoutedEvent("ClosingFinished", RoutingStrategy.Bubble,
-                typeof(RoutedEventHandler), typeof(Flyout));
+            EventManager.RegisterRoutedEvent(nameof(ClosingFinished), RoutingStrategy.Bubble,
+                                             typeof(RoutedEventHandler), typeof(Flyout));
 
         public event RoutedEventHandler ClosingFinished
         {
@@ -49,34 +67,56 @@ namespace MahApps.Metro.Controls
             remove { this.RemoveHandler(ClosingFinishedEvent, value); }
         }
 
-        public static readonly DependencyProperty PositionProperty = DependencyProperty.Register("Position", typeof(Position), typeof(Flyout), new PropertyMetadata(Position.Left, PositionChanged));
-        public static readonly DependencyProperty IsPinnedProperty = DependencyProperty.Register("IsPinned", typeof(bool), typeof(Flyout), new PropertyMetadata(true));
-        public static readonly DependencyProperty IsOpenProperty = DependencyProperty.Register("IsOpen", typeof(bool), typeof(Flyout), new FrameworkPropertyMetadata(default(bool), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, IsOpenedChanged));
-        public static readonly DependencyProperty AnimateOnPositionChangeProperty = DependencyProperty.Register("AnimateOnPositionChange", typeof(bool), typeof(Flyout), new PropertyMetadata(true));
-        public static readonly DependencyProperty AnimateOpacityProperty = DependencyProperty.Register("AnimateOpacity", typeof(bool), typeof(Flyout), new FrameworkPropertyMetadata(false, AnimateOpacityChanged));
-        public static readonly DependencyProperty IsModalProperty = DependencyProperty.Register("IsModal", typeof(bool), typeof(Flyout));
+        public static readonly DependencyProperty PositionProperty = DependencyProperty.Register(nameof(Position), typeof(Position), typeof(Flyout), new PropertyMetadata(Position.Left, PositionChanged));
+        public static readonly DependencyProperty IsPinnedProperty = DependencyProperty.Register(nameof(IsPinned), typeof(bool), typeof(Flyout), new PropertyMetadata(BooleanBoxes.TrueBox));
 
-        public static readonly DependencyProperty CloseCommandProperty = DependencyProperty.RegisterAttached("CloseCommand", typeof(ICommand), typeof(Flyout), new UIPropertyMetadata(null));
-        public static readonly DependencyProperty CloseCommandParameterProperty = DependencyProperty.Register("CloseCommandParameter", typeof(object), typeof(Flyout), new PropertyMetadata(null));
+        public static readonly DependencyProperty IsOpenProperty = DependencyProperty.Register(nameof(IsOpen), typeof(bool), typeof(Flyout), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, IsOpenedChanged));
 
-        public static readonly DependencyProperty ThemeProperty = DependencyProperty.Register("Theme", typeof(FlyoutTheme), typeof(Flyout), new FrameworkPropertyMetadata(FlyoutTheme.Dark, ThemeChanged));
-        public static readonly DependencyProperty ExternalCloseButtonProperty = DependencyProperty.Register("ExternalCloseButton", typeof(MouseButton), typeof(Flyout), new PropertyMetadata(MouseButton.Left));
-        public static readonly DependencyProperty CloseButtonVisibilityProperty = DependencyProperty.Register("CloseButtonVisibility", typeof(Visibility), typeof(Flyout), new FrameworkPropertyMetadata(Visibility.Visible));
-        public static readonly DependencyProperty CloseButtonIsCancelProperty = DependencyProperty.Register("CloseButtonIsCancel", typeof(bool), typeof(Flyout), new FrameworkPropertyMetadata(false));
-        public static readonly DependencyProperty TitleVisibilityProperty = DependencyProperty.Register("TitleVisibility", typeof(Visibility), typeof(Flyout), new FrameworkPropertyMetadata(Visibility.Visible));
-        public static readonly DependencyProperty AreAnimationsEnabledProperty = DependencyProperty.Register("AreAnimationsEnabled", typeof(bool), typeof(Flyout), new PropertyMetadata(true));
-        public static readonly DependencyProperty FocusedElementProperty = DependencyProperty.Register("FocusedElement", typeof(FrameworkElement), typeof(Flyout), new UIPropertyMetadata(null));
-        public static readonly DependencyProperty AllowFocusElementProperty = DependencyProperty.Register("AllowFocusElement", typeof(bool), typeof(Flyout), new PropertyMetadata(true));
-        public static readonly DependencyProperty IsAutoCloseEnabledProperty = DependencyProperty.Register("IsAutoCloseEnabled", typeof(bool), typeof(Flyout), new FrameworkPropertyMetadata(false, IsAutoCloseEnabledChanged));
-        public static readonly DependencyProperty AutoCloseIntervalProperty = DependencyProperty.Register("AutoCloseInterval", typeof(long), typeof(Flyout), new FrameworkPropertyMetadata(5000L, AutoCloseIntervalChanged));
+        /// <summary>Identifies the <see cref="IsShown"/> dependency property.</summary>
+        private static readonly DependencyPropertyKey IsShownPropertyKey
+            = DependencyProperty.RegisterReadOnly(nameof(IsShown),
+                                                  typeof(bool),
+                                                  typeof(Flyout),
+                                                  new PropertyMetadata(BooleanBoxes.FalseBox));
+
+        /// <summary>Identifies the <see cref="IsShown"/> dependency property.</summary>
+        public static readonly DependencyProperty IsShownProperty = IsShownPropertyKey.DependencyProperty;
+
+        /// <summary>
+        /// Gets whether the Flyout is completely shown (after IsOpen was set to true).
+        /// </summary>
+        public bool IsShown
+        {
+            get => (bool)this.GetValue(IsShownProperty);
+            protected set => this.SetValue(IsShownPropertyKey, BooleanBoxes.Box(value));
+        }
+
+        public static readonly DependencyProperty AnimateOnPositionChangeProperty = DependencyProperty.Register(nameof(AnimateOnPositionChange), typeof(bool), typeof(Flyout), new PropertyMetadata(BooleanBoxes.TrueBox));
+        public static readonly DependencyProperty AnimateOpacityProperty = DependencyProperty.Register(nameof(AnimateOpacity), typeof(bool), typeof(Flyout), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, OnAnimateOpacityPropertyChanged));
+        public static readonly DependencyProperty IsModalProperty = DependencyProperty.Register(nameof(IsModal), typeof(bool), typeof(Flyout), new PropertyMetadata(BooleanBoxes.FalseBox));
+
+        public static readonly DependencyProperty CloseCommandProperty = DependencyProperty.RegisterAttached(nameof(CloseCommand), typeof(ICommand), typeof(Flyout), new UIPropertyMetadata(null));
+        public static readonly DependencyProperty CloseCommandParameterProperty = DependencyProperty.Register(nameof(CloseCommandParameter), typeof(object), typeof(Flyout), new PropertyMetadata(null));
+
+        public static readonly DependencyProperty ThemeProperty = DependencyProperty.Register(nameof(Theme), typeof(FlyoutTheme), typeof(Flyout), new FrameworkPropertyMetadata(FlyoutTheme.Dark, OnThemePropertyChanged));
+        public static readonly DependencyProperty ExternalCloseButtonProperty = DependencyProperty.Register(nameof(ExternalCloseButton), typeof(MouseButton), typeof(Flyout), new PropertyMetadata(MouseButton.Left));
+        public static readonly DependencyProperty CloseButtonVisibilityProperty = DependencyProperty.Register(nameof(CloseButtonVisibility), typeof(Visibility), typeof(Flyout), new FrameworkPropertyMetadata(Visibility.Visible));
+        public static readonly DependencyProperty CloseButtonIsCancelProperty = DependencyProperty.Register(nameof(CloseButtonIsCancel), typeof(bool), typeof(Flyout), new PropertyMetadata(BooleanBoxes.FalseBox));
+        public static readonly DependencyProperty TitleVisibilityProperty = DependencyProperty.Register(nameof(TitleVisibility), typeof(Visibility), typeof(Flyout), new FrameworkPropertyMetadata(Visibility.Visible));
+        public static readonly DependencyProperty AreAnimationsEnabledProperty = DependencyProperty.Register(nameof(AreAnimationsEnabled), typeof(bool), typeof(Flyout), new PropertyMetadata(BooleanBoxes.TrueBox));
+        public static readonly DependencyProperty FocusedElementProperty = DependencyProperty.Register(nameof(FocusedElement), typeof(FrameworkElement), typeof(Flyout), new UIPropertyMetadata(null));
+        public static readonly DependencyProperty AllowFocusElementProperty = DependencyProperty.Register(nameof(AllowFocusElement), typeof(bool), typeof(Flyout), new PropertyMetadata(BooleanBoxes.TrueBox));
+        public static readonly DependencyProperty IsAutoCloseEnabledProperty = DependencyProperty.Register(nameof(IsAutoCloseEnabled), typeof(bool), typeof(Flyout), new FrameworkPropertyMetadata(BooleanBoxes.FalseBox, IsAutoCloseEnabledChanged));
+        public static readonly DependencyProperty AutoCloseIntervalProperty = DependencyProperty.Register(nameof(AutoCloseInterval), typeof(long), typeof(Flyout), new FrameworkPropertyMetadata(5000L, AutoCloseIntervalChanged));
 
         internal PropertyChangeNotifier IsOpenPropertyChangeNotifier { get; set; }
+
         internal PropertyChangeNotifier ThemePropertyChangeNotifier { get; set; }
 
         public bool AreAnimationsEnabled
         {
             get { return (bool)this.GetValue(AreAnimationsEnabledProperty); }
-            set { this.SetValue(AreAnimationsEnabledProperty, value); }
+            set { this.SetValue(AreAnimationsEnabledProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -103,7 +143,7 @@ namespace MahApps.Metro.Controls
         public bool CloseButtonIsCancel
         {
             get { return (bool)this.GetValue(CloseButtonIsCancelProperty); }
-            set { this.SetValue(CloseButtonIsCancelProperty, value); }
+            set { this.SetValue(CloseButtonIsCancelProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -131,7 +171,7 @@ namespace MahApps.Metro.Controls
         public bool IsOpen
         {
             get { return (bool)this.GetValue(IsOpenProperty); }
-            set { this.SetValue(IsOpenProperty, value); }
+            set { this.SetValue(IsOpenProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -140,7 +180,7 @@ namespace MahApps.Metro.Controls
         public bool AnimateOnPositionChange
         {
             get { return (bool)this.GetValue(AnimateOnPositionChangeProperty); }
-            set { this.SetValue(AnimateOnPositionChangeProperty, value); }
+            set { this.SetValue(AnimateOnPositionChangeProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -149,7 +189,7 @@ namespace MahApps.Metro.Controls
         public bool AnimateOpacity
         {
             get { return (bool)this.GetValue(AnimateOpacityProperty); }
-            set { this.SetValue(AnimateOpacityProperty, value); }
+            set { this.SetValue(AnimateOpacityProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -158,7 +198,7 @@ namespace MahApps.Metro.Controls
         public bool IsPinned
         {
             get { return (bool)this.GetValue(IsPinnedProperty); }
-            set { this.SetValue(IsPinnedProperty, value); }
+            set { this.SetValue(IsPinnedProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -176,7 +216,7 @@ namespace MahApps.Metro.Controls
         public bool IsModal
         {
             get { return (bool)this.GetValue(IsModalProperty); }
-            set { this.SetValue(IsModalProperty, value); }
+            set { this.SetValue(IsModalProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -212,7 +252,7 @@ namespace MahApps.Metro.Controls
         public bool IsAutoCloseEnabled
         {
             get { return (bool)this.GetValue(IsAutoCloseEnabledProperty); }
-            set { this.SetValue(IsAutoCloseEnabledProperty, value); }
+            set { this.SetValue(IsAutoCloseEnabledProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -230,7 +270,7 @@ namespace MahApps.Metro.Controls
         public bool AllowFocusElement
         {
             get { return (bool)this.GetValue(AllowFocusElementProperty); }
-            set { this.SetValue(AllowFocusElementProperty, value); }
+            set { this.SetValue(AllowFocusElementProperty, BooleanBoxes.Box(value)); }
         }
 
         static Flyout()
@@ -289,39 +329,39 @@ namespace MahApps.Metro.Controls
             }
         }
 
-        internal void ChangeFlyoutTheme(MahApps.Metro.Theme windowTheme)
+        internal void ChangeFlyoutTheme(ControlzEx.Theming.Theme windowTheme)
         {
             // Beware: Über-dumb code ahead!
             switch (this.Theme)
             {
                 case FlyoutTheme.Accent:
-                    ThemeManager.ApplyThemeResourcesFromTheme(this.Resources, windowTheme);
+                    ThemeManager.Current.ApplyThemeResourcesFromTheme(this.Resources, windowTheme);
                     this.OverrideFlyoutResources(this.Resources, true);
                     break;
 
                 case FlyoutTheme.Adapt:
-                    ThemeManager.ApplyThemeResourcesFromTheme(this.Resources, windowTheme);
+                    ThemeManager.Current.ApplyThemeResourcesFromTheme(this.Resources, windowTheme);
                     this.OverrideFlyoutResources(this.Resources);
                     break;
 
                 case FlyoutTheme.Inverse:
-                    var inverseTheme = ThemeManager.GetInverseTheme(windowTheme);
+                    var inverseTheme = ThemeManager.Current.GetInverseTheme(windowTheme);
 
                     if (inverseTheme == null)
                         throw new InvalidOperationException("The inverse flyout theme only works if the window theme abides the naming convention. " +
                                                             "See ThemeManager.GetInverseAppTheme for more infos");
 
-                    ThemeManager.ApplyThemeResourcesFromTheme(this.Resources, inverseTheme);
+                    ThemeManager.Current.ApplyThemeResourcesFromTheme(this.Resources, inverseTheme);
                     this.OverrideFlyoutResources(this.Resources);
                     break;
 
                 case FlyoutTheme.Dark:
-                    ThemeManager.ApplyThemeResourcesFromTheme(this.Resources, ThemeManager.Themes.First(x => x.BaseColorScheme == ThemeManager.BaseColorDark && x.ColorScheme == windowTheme.ColorScheme));
+                    ThemeManager.Current.ApplyThemeResourcesFromTheme(this.Resources, windowTheme.BaseColorScheme == ThemeManager.BaseColorDark ? windowTheme : ThemeManager.Current.GetInverseTheme(windowTheme));
                     this.OverrideFlyoutResources(this.Resources);
                     break;
 
                 case FlyoutTheme.Light:
-                    ThemeManager.ApplyThemeResourcesFromTheme(this.Resources, ThemeManager.Themes.First(x => x.BaseColorScheme == ThemeManager.BaseColorLight && x.ColorScheme == windowTheme.ColorScheme));
+                    ThemeManager.Current.ApplyThemeResourcesFromTheme(this.Resources, windowTheme.BaseColorScheme == ThemeManager.BaseColorLight ? windowTheme : ThemeManager.Current.GetInverseTheme(windowTheme));
                     this.OverrideFlyoutResources(this.Resources);
                     break;
             }
@@ -334,16 +374,14 @@ namespace MahApps.Metro.Controls
             resources.BeginInit();
 
             var fromColor = (Color)resources[fromColorKey];
-            resources["MahApps.Colors.White"] = fromColor;
+            resources["MahApps.Colors.ThemeBackground"] = fromColor;
             resources["MahApps.Colors.Flyout"] = fromColor;
 
             var newBrush = new SolidColorBrush(fromColor);
             newBrush.Freeze();
             resources["MahApps.Brushes.Flyout.Background"] = newBrush;
             resources["MahApps.Brushes.Control.Background"] = newBrush;
-            resources["MahApps.Brushes.White"] = newBrush;
-            resources["MahApps.Brushes.WhiteColor"] = newBrush;
-            resources["MahApps.Brushes.DisabledWhite"] = newBrush;
+            resources["MahApps.Brushes.ThemeBackground"] = newBrush;
             resources["MahApps.Brushes.Window.Background"] = newBrush;
             resources[SystemColors.WindowBrushKey] = newBrush;
 
@@ -354,7 +392,6 @@ namespace MahApps.Metro.Controls
                 newBrush.Freeze();
                 resources["MahApps.Brushes.Flyout.Foreground"] = newBrush;
                 resources["MahApps.Brushes.Text"] = newBrush;
-                resources["MahApps.Brushes.Label.Text"] = newBrush;
 
                 if (resources.Contains("MahApps.Colors.AccentBase"))
                 {
@@ -365,45 +402,41 @@ namespace MahApps.Metro.Controls
                     var accentColor = (Color)resources["MahApps.Colors.Accent"];
                     fromColor = Color.FromArgb(255, accentColor.R, accentColor.G, accentColor.B);
                 }
+
                 newBrush = new SolidColorBrush(fromColor);
                 newBrush.Freeze();
                 resources["MahApps.Colors.Highlight"] = fromColor;
-                resources["MahApps.Brushes.Highlight"] = newBrush; resources["MahApps.Brushes.Highlight"] = newBrush;
+                resources["MahApps.Brushes.Highlight"] = newBrush;
             }
 
             resources.EndInit();
         }
 
-        private static MahApps.Metro.Theme DetectTheme(Flyout flyout)
+        private static ControlzEx.Theming.Theme DetectTheme(Flyout flyout)
         {
             if (flyout == null)
                 return null;
 
             // first look for owner
             var window = flyout.ParentWindow;
-            var theme = window != null ? ThemeManager.DetectTheme(window) : null;
+            var theme = window != null ? ThemeManager.Current.DetectTheme(window) : null;
             if (theme != null)
             {
                 return theme;
             }
 
-            // second try, look for main window
+            // second try, look for main window and then for current application
             if (Application.Current != null)
             {
-                var mainWindow = Application.Current.MainWindow as MetroWindow;
-                theme = mainWindow != null ? ThemeManager.DetectTheme(mainWindow) : null;
-                if (theme != null)
-                {
-                    return theme;
-                }
-
-                // oh no, now look at application resource
-                theme = ThemeManager.DetectTheme(Application.Current);
+                theme = Application.Current.MainWindow is null
+                    ? ThemeManager.Current.DetectTheme(Application.Current)
+                    : ThemeManager.Current.DetectTheme(Application.Current.MainWindow);
                 if (theme != null)
                 {
                     return theme;
                 }
             }
+
             return null;
         }
 
@@ -413,6 +446,7 @@ namespace MahApps.Metro.Controls
             {
                 return;
             }
+
             if (!this.AnimateOpacity)
             {
                 this.fadeOutFrame.Value = 1;
@@ -429,63 +463,84 @@ namespace MahApps.Metro.Controls
         {
             var flyout = (Flyout)dependencyObject;
 
-            Action openedChangedAction = () => {
-                if (e.NewValue != e.OldValue)
+            Action openedChangedAction = () =>
                 {
-                    if (flyout.AreAnimationsEnabled)
+                    if (e.NewValue != e.OldValue)
                     {
-                        if ((bool)e.NewValue)
+                        if (flyout.AreAnimationsEnabled)
                         {
-                            if (flyout.hideStoryboard != null)
+                            if ((bool)e.NewValue)
                             {
-                                // don't let the storyboard end it's completed event
-                                // otherwise it could be hidden on start
-                                flyout.hideStoryboard.Completed -= flyout.HideStoryboardCompleted;
-                            }
-                            flyout.Visibility = Visibility.Visible;
-                            flyout.ApplyAnimation(flyout.Position, flyout.AnimateOpacity);
-                            flyout.TryFocusElement();
-                            if (flyout.IsAutoCloseEnabled)
-                            {
-                                flyout.StartAutoCloseTimer();
-                            }
-                        }
-                        else
-                        {
-                            flyout.StopAutoCloseTimer();
-                            if (flyout.hideStoryboard != null)
-                            {
-                                flyout.hideStoryboard.Completed += flyout.HideStoryboardCompleted;
+                                if (flyout.hideStoryboard != null)
+                                {
+                                    // don't let the storyboard end it's completed event
+                                    // otherwise it could be hidden on start
+                                    flyout.hideStoryboard.Completed -= flyout.HideStoryboardCompleted;
+                                }
+
+                                flyout.Visibility = Visibility.Visible;
+                                flyout.ApplyAnimation(flyout.Position, flyout.AnimateOpacity);
+                                flyout.TryFocusElement();
+                                if (flyout.showStoryboard != null)
+                                {
+                                    flyout.showStoryboard.Completed += flyout.ShowStoryboardCompleted;
+                                }
+                                else
+                                {
+                                    flyout.Shown();
+                                }
+
+                                if (flyout.IsAutoCloseEnabled)
+                                {
+                                    flyout.StartAutoCloseTimer();
+                                }
                             }
                             else
                             {
-                                flyout.Hide();
+                                if (flyout.showStoryboard != null)
+                                {
+                                    flyout.showStoryboard.Completed -= flyout.ShowStoryboardCompleted;
+                                }
+
+                                flyout.StopAutoCloseTimer();
+                                flyout.SetValue(IsShownPropertyKey, BooleanBoxes.FalseBox);
+                                if (flyout.hideStoryboard != null)
+                                {
+                                    flyout.hideStoryboard.Completed += flyout.HideStoryboardCompleted;
+                                }
+                                else
+                                {
+                                    flyout.Hide();
+                                }
                             }
-                        }
-                        VisualStateManager.GoToState(flyout, (bool)e.NewValue == false ? "Hide" : "Show", true);
-                    }
-                    else
-                    {
-                        if ((bool)e.NewValue)
-                        {
-                            flyout.Visibility = Visibility.Visible;
-                            flyout.TryFocusElement();
-                            if (flyout.IsAutoCloseEnabled)
-                            {
-                                flyout.StartAutoCloseTimer();
-                            }
+
+                            VisualStateManager.GoToState(flyout, (bool)e.NewValue == false ? "Hide" : "Show", true);
                         }
                         else
                         {
-                            flyout.StopAutoCloseTimer();
-                            flyout.Hide();
-                        }
-                        VisualStateManager.GoToState(flyout, (bool)e.NewValue == false ? "HideDirect" : "ShowDirect", true);
-                    }
-                }
+                            if ((bool)e.NewValue)
+                            {
+                                flyout.Visibility = Visibility.Visible;
+                                flyout.TryFocusElement();
+                                flyout.Shown();
+                                if (flyout.IsAutoCloseEnabled)
+                                {
+                                    flyout.StartAutoCloseTimer();
+                                }
+                            }
+                            else
+                            {
+                                flyout.StopAutoCloseTimer();
+                                flyout.SetValue(IsShownPropertyKey, BooleanBoxes.FalseBox);
+                                flyout.Hide();
+                            }
 
-                flyout.RaiseEvent(new RoutedEventArgs(IsOpenChangedEvent));
-            };
+                            VisualStateManager.GoToState(flyout, (bool)e.NewValue == false ? "HideDirect" : "ShowDirect", true);
+                        }
+                    }
+
+                    flyout.RaiseEvent(new RoutedEventArgs(IsOpenChangedEvent));
+                };
 
             flyout.Dispatcher.BeginInvoke(DispatcherPriority.Background, openedChangedAction);
         }
@@ -494,22 +549,23 @@ namespace MahApps.Metro.Controls
         {
             var flyout = (Flyout)dependencyObject;
 
-            Action autoCloseEnabledChangedAction = () => {
-                if (e.NewValue != e.OldValue)
+            Action autoCloseEnabledChangedAction = () =>
                 {
-                    if ((bool)e.NewValue)
+                    if (e.NewValue != e.OldValue)
                     {
-                        if (flyout.IsOpen)
+                        if ((bool)e.NewValue)
                         {
-                            flyout.StartAutoCloseTimer();
+                            if (flyout.IsOpen)
+                            {
+                                flyout.StartAutoCloseTimer();
+                            }
+                        }
+                        else
+                        {
+                            flyout.StopAutoCloseTimer();
                         }
                     }
-                    else
-                    {
-                        flyout.StopAutoCloseTimer();
-                    }
-                }
-            };
+                };
 
             flyout.Dispatcher.BeginInvoke(DispatcherPriority.Background, autoCloseEnabledChangedAction);
         }
@@ -518,16 +574,17 @@ namespace MahApps.Metro.Controls
         {
             var flyout = (Flyout)dependencyObject;
 
-            Action autoCloseIntervalChangedAction = () => {
-                if (e.NewValue != e.OldValue)
+            Action autoCloseIntervalChangedAction = () =>
                 {
-                    flyout.InitializeAutoCloseTimer();
-                    if (flyout.IsAutoCloseEnabled && flyout.IsOpen)
+                    if (e.NewValue != e.OldValue)
                     {
-                        flyout.StartAutoCloseTimer();
+                        flyout.InitializeAutoCloseTimer();
+                        if (flyout.IsAutoCloseEnabled && flyout.IsOpen)
+                        {
+                            flyout.StartAutoCloseTimer();
+                        }
                     }
-                }
-            };
+                };
 
             flyout.Dispatcher.BeginInvoke(DispatcherPriority.Background, autoCloseIntervalChangedAction);
         }
@@ -574,6 +631,18 @@ namespace MahApps.Metro.Controls
             this.RaiseEvent(new RoutedEventArgs(ClosingFinishedEvent));
         }
 
+        private void ShowStoryboardCompleted(object sender, EventArgs e)
+        {
+            this.showStoryboard.Completed -= this.ShowStoryboardCompleted;
+            this.Shown();
+        }
+
+        private void Shown()
+        {
+            this.SetValue(IsShownPropertyKey, BooleanBoxes.TrueBox);
+            this.RaiseEvent(new RoutedEventArgs(OpeningFinishedEvent));
+        }
+
         private void TryFocusElement()
         {
             if (this.AllowFocusElement)
@@ -592,16 +661,14 @@ namespace MahApps.Metro.Controls
             }
         }
 
-        private static void ThemeChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
+        private static void OnThemePropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
         {
-            var flyout = (Flyout)dependencyObject;
-            flyout.UpdateFlyoutTheme();
+            (dependencyObject as Flyout)?.UpdateFlyoutTheme();
         }
 
-        private static void AnimateOpacityChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
+        private static void OnAnimateOpacityPropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
         {
-            var flyout = (Flyout)dependencyObject;
-            flyout.UpdateOpacityChange();
+            (dependencyObject as Flyout)?.UpdateOpacityChange();
         }
 
         private static void PositionChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
@@ -627,6 +694,7 @@ namespace MahApps.Metro.Controls
 
         DispatcherTimer autoCloseTimer;
         FrameworkElement flyoutRoot;
+        Storyboard showStoryboard;
         Storyboard hideStoryboard;
         SplineDoubleKeyFrame hideFrame;
         SplineDoubleKeyFrame hideFrameY;
@@ -672,6 +740,7 @@ namespace MahApps.Metro.Controls
                 }
             }
 
+            this.showStoryboard = this.GetTemplateChild("ShowStoryboard") as Storyboard;
             this.hideStoryboard = this.GetTemplateChild("HideStoryboard") as Storyboard;
             this.hideFrame = this.GetTemplateChild("hideFrame") as SplineDoubleKeyFrame;
             this.hideFrameY = this.GetTemplateChild("hideFrameY") as SplineDoubleKeyFrame;
@@ -719,6 +788,7 @@ namespace MahApps.Metro.Controls
                 thumbContentControl.MouseDoubleClick -= this.WindowTitleThumbChangeWindowStateOnMouseDoubleClick;
                 thumbContentControl.MouseRightButtonUp -= this.WindowTitleThumbSystemMenuOnMouseRightButtonUp;
             }
+
             this.parentWindow = null;
         }
 
@@ -729,6 +799,7 @@ namespace MahApps.Metro.Controls
             {
                 MetroWindow.DoWindowTitleThumbOnPreviewMouseLeftButtonUp(window, e);
             }
+
             this.dragStartedMousePos = null;
         }
 
@@ -788,14 +859,14 @@ namespace MahApps.Metro.Controls
             switch (position)
             {
                 default:
-                    this.HorizontalAlignment = this.Margin.Right <= 0 ? (this.HorizontalContentAlignment != HorizontalAlignment.Stretch ? HorizontalAlignment.Left : this.HorizontalContentAlignment) : HorizontalAlignment.Stretch;//HorizontalAlignment.Left;
+                    this.HorizontalAlignment = this.Margin.Right <= 0 ? (this.HorizontalContentAlignment != HorizontalAlignment.Stretch ? HorizontalAlignment.Left : this.HorizontalContentAlignment) : HorizontalAlignment.Stretch; //HorizontalAlignment.Left;
                     this.VerticalAlignment = VerticalAlignment.Stretch;
                     this.hideFrame.Value = -this.flyoutRoot.ActualWidth - this.Margin.Left;
                     if (resetShowFrame)
                         this.flyoutRoot.RenderTransform = new TranslateTransform(-this.flyoutRoot.ActualWidth, 0);
                     break;
                 case Position.Right:
-                    this.HorizontalAlignment = this.Margin.Left <= 0 ? (this.HorizontalContentAlignment != HorizontalAlignment.Stretch ? HorizontalAlignment.Right : this.HorizontalContentAlignment) : HorizontalAlignment.Stretch;//HorizontalAlignment.Right;
+                    this.HorizontalAlignment = this.Margin.Left <= 0 ? (this.HorizontalContentAlignment != HorizontalAlignment.Stretch ? HorizontalAlignment.Right : this.HorizontalContentAlignment) : HorizontalAlignment.Stretch; //HorizontalAlignment.Right;
                     this.VerticalAlignment = VerticalAlignment.Stretch;
                     this.hideFrame.Value = this.flyoutRoot.ActualWidth + this.Margin.Right;
                     if (resetShowFrame)
@@ -803,14 +874,14 @@ namespace MahApps.Metro.Controls
                     break;
                 case Position.Top:
                     this.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    this.VerticalAlignment = this.Margin.Bottom <= 0 ? (this.VerticalContentAlignment != VerticalAlignment.Stretch ? VerticalAlignment.Top : this.VerticalContentAlignment) : VerticalAlignment.Stretch;//VerticalAlignment.Top;
+                    this.VerticalAlignment = this.Margin.Bottom <= 0 ? (this.VerticalContentAlignment != VerticalAlignment.Stretch ? VerticalAlignment.Top : this.VerticalContentAlignment) : VerticalAlignment.Stretch; //VerticalAlignment.Top;
                     this.hideFrameY.Value = -this.flyoutRoot.ActualHeight - 1 - this.Margin.Top;
                     if (resetShowFrame)
                         this.flyoutRoot.RenderTransform = new TranslateTransform(0, -this.flyoutRoot.ActualHeight - 1);
                     break;
                 case Position.Bottom:
                     this.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    this.VerticalAlignment = this.Margin.Top <= 0 ? (this.VerticalContentAlignment != VerticalAlignment.Stretch ? VerticalAlignment.Bottom : this.VerticalContentAlignment) : VerticalAlignment.Stretch;//VerticalAlignment.Bottom;
+                    this.VerticalAlignment = this.Margin.Top <= 0 ? (this.VerticalContentAlignment != VerticalAlignment.Stretch ? VerticalAlignment.Bottom : this.VerticalContentAlignment) : VerticalAlignment.Stretch; //VerticalAlignment.Bottom;
                     this.hideFrameY.Value = this.flyoutRoot.ActualHeight + this.Margin.Bottom;
                     if (resetShowFrame)
                         this.flyoutRoot.RenderTransform = new TranslateTransform(0, this.flyoutRoot.ActualHeight);

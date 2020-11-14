@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -6,7 +10,9 @@ using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
+using ControlzEx.Theming;
 using JetBrains.Annotations;
+using MahApps.Metro.Automation.Peers;
 
 namespace MahApps.Metro.Controls.Dialogs
 {
@@ -230,26 +236,26 @@ namespace MahApps.Metro.Controls.Dialogs
 
         private void BaseMetroDialogLoaded(object sender, RoutedEventArgs e)
         {
-            ThemeManager.IsThemeChanged -= this.ThemeManagerIsThemeChanged;
-            ThemeManager.IsThemeChanged += this.ThemeManagerIsThemeChanged;
+            ThemeManager.Current.ThemeChanged -= this.ThemeManagerIsThemeChanged;
+            ThemeManager.Current.ThemeChanged += this.ThemeManagerIsThemeChanged;
             this.OnLoaded();
         }
 
         private void BaseMetroDialogUnloaded(object sender, RoutedEventArgs e)
         {
-            ThemeManager.IsThemeChanged -= this.ThemeManagerIsThemeChanged;
+            ThemeManager.Current.ThemeChanged -= this.ThemeManagerIsThemeChanged;
         }
 
-        private void ThemeManagerIsThemeChanged(object sender, OnThemeChangedEventArgs e)
+        private void ThemeManagerIsThemeChanged(object sender, ThemeChangedEventArgs e)
         {
-            this.HandleThemeChange();
+            this.Invoke(this.HandleThemeChange);
         }
 
-        private static object TryGetResource(MahApps.Metro.Theme theme, string key)
+        private static object TryGetResource(ControlzEx.Theming.Theme theme, string key)
         {
             if (theme == null)
             {
-                // nothing to do here, we can't found an app style (make sure all custom themes are added!)
+                // nothing to do here, we can't find an app style (make sure all custom themes are added!)
                 return null;
             }
 
@@ -273,24 +279,24 @@ namespace MahApps.Metro.Controls.Dialogs
                 switch (this.DialogSettings.ColorScheme)
                 {
                     case MetroDialogColorScheme.Theme:
-                        ThemeManager.ChangeTheme(this.Resources, theme);
-                        this.SetValue(BackgroundProperty, TryGetResource(theme, "MahApps.Brushes.WhiteColor"));
-                        this.SetValue(ForegroundProperty, TryGetResource(theme, "MahApps.Brushes.Black"));
+                        ThemeManager.Current.ChangeTheme(this, this.Resources, theme);
+                        this.SetValue(BackgroundProperty, TryGetResource(theme, "MahApps.Brushes.ThemeBackground"));
+                        this.SetValue(ForegroundProperty, TryGetResource(theme, "MahApps.Brushes.ThemeForeground"));
                         break;
                     case MetroDialogColorScheme.Inverted:
-                        theme = ThemeManager.GetInverseTheme(theme);
+                        theme = ThemeManager.Current.GetInverseTheme(theme);
                         if (theme == null)
                         {
                             throw new InvalidOperationException("The inverse dialog theme only works if the window theme abides the naming convention. " +
                                                                 "See ThemeManager.GetInverseAppTheme for more infos");
                         }
 
-                        ThemeManager.ChangeTheme(this.Resources, theme);
-                        this.SetValue(BackgroundProperty, TryGetResource(theme, "MahApps.Brushes.WhiteColor"));
-                        this.SetValue(ForegroundProperty, TryGetResource(theme, "MahApps.Brushes.Black"));
+                        ThemeManager.Current.ChangeTheme(this, this.Resources, theme);
+                        this.SetValue(BackgroundProperty, TryGetResource(theme, "MahApps.Brushes.ThemeBackground"));
+                        this.SetValue(ForegroundProperty, TryGetResource(theme, "MahApps.Brushes.ThemeForeground"));
                         break;
                     case MetroDialogColorScheme.Accented:
-                        ThemeManager.ChangeTheme(this.Resources, theme);
+                        ThemeManager.Current.ChangeTheme(this, this.Resources, theme);
                         this.SetValue(BackgroundProperty, TryGetResource(theme, "MahApps.Brushes.Highlight"));
                         this.SetValue(ForegroundProperty, TryGetResource(theme, "MahApps.Brushes.IdealForeground"));
                         break;
@@ -316,7 +322,7 @@ namespace MahApps.Metro.Controls.Dialogs
             // nothing here
         }
 
-        private static MahApps.Metro.Theme DetectTheme(BaseMetroDialog dialog)
+        private static ControlzEx.Theming.Theme DetectTheme(BaseMetroDialog dialog)
         {
             if (dialog == null)
             {
@@ -325,24 +331,18 @@ namespace MahApps.Metro.Controls.Dialogs
 
             // first look for owner
             var window = dialog.OwningWindow ?? dialog.TryFindParent<MetroWindow>();
-            var theme = window != null ? ThemeManager.DetectTheme(window) : null;
+            var theme = window != null ? ThemeManager.Current.DetectTheme(window) : null;
             if (theme != null)
             {
                 return theme;
             }
 
-            // second try, look for main window
+            // second try, look for main window and then for current application
             if (Application.Current != null)
             {
-                var mainWindow = Application.Current.MainWindow as MetroWindow;
-                theme = mainWindow != null ? ThemeManager.DetectTheme(mainWindow) : null;
-                if (theme != null)
-                {
-                    return theme;
-                }
-
-                // oh no, now look at application resource
-                theme = ThemeManager.DetectTheme(Application.Current);
+                theme = Application.Current.MainWindow is null
+                    ? ThemeManager.Current.DetectTheme(Application.Current)
+                    : ThemeManager.Current.DetectTheme(Application.Current.MainWindow);
                 if (theme != null)
                 {
                     return theme;
@@ -462,7 +462,7 @@ namespace MahApps.Metro.Controls.Dialogs
 
             if (this.DialogSettings.AnimateHide)
             {
-                Storyboard closingStoryboard = this.TryFindResource("MahApps.Storyboard.DialogClose") as Storyboard;
+                Storyboard closingStoryboard = this.TryFindResource("MahApps.Storyboard.Dialogs.Close") as Storyboard;
 
                 if (closingStoryboard == null)
                 {

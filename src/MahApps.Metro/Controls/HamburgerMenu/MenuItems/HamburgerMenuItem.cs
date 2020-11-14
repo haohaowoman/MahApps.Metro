@@ -1,6 +1,11 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Windows;
 using System.Windows.Input;
+using MahApps.Metro.ValueBoxes;
 
 namespace MahApps.Metro.Controls
 {
@@ -37,7 +42,7 @@ namespace MahApps.Metro.Controls
         /// <summary>
         /// Identifies the <see cref="IsEnabled"/> dependency property.
         /// </summary>
-        public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.Register(nameof(IsEnabled), typeof(bool), typeof(HamburgerMenuItem), new PropertyMetadata(true, null, IsEnabledCoerceValueCallback));
+        public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.Register(nameof(IsEnabled), typeof(bool), typeof(HamburgerMenuItem), new PropertyMetadata(BooleanBoxes.TrueBox, null, IsEnabledCoerceValueCallback));
 
         /// <summary>
         /// Identifies the <see cref="ToolTip"/> dependency property. 
@@ -49,15 +54,9 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public string Label
         {
-            get
-            {
-                return (string)GetValue(LabelProperty);
-            }
+            get { return (string)GetValue(LabelProperty); }
 
-            set
-            {
-                SetValue(LabelProperty, value);
-            }
+            set { SetValue(LabelProperty, value); }
         }
 
         /// <summary>
@@ -65,15 +64,9 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public Type TargetPageType
         {
-            get
-            {
-                return (Type)GetValue(TargetPageTypeProperty);
-            }
+            get { return (Type)GetValue(TargetPageTypeProperty); }
 
-            set
-            {
-                SetValue(TargetPageTypeProperty, value);
-            }
+            set { SetValue(TargetPageTypeProperty, value); }
         }
 
         /// <summary>
@@ -81,15 +74,9 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public ICommand Command
         {
-            get
-            {
-                return (ICommand)GetValue(CommandProperty);
-            }
+            get { return (ICommand)GetValue(CommandProperty); }
 
-            set
-            {
-                SetValue(CommandProperty, value);
-            }
+            set { SetValue(CommandProperty, value); }
         }
 
         /// <summary>
@@ -97,15 +84,9 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public object CommandParameter
         {
-            get
-            {
-                return (object)GetValue(CommandParameterProperty);
-            }
+            get { return (object)GetValue(CommandParameterProperty); }
 
-            set
-            {
-                SetValue(CommandParameterProperty, value);
-            }
+            set { SetValue(CommandParameterProperty, value); }
         }
 
         /// <summary>
@@ -116,15 +97,9 @@ namespace MahApps.Metro.Controls
         /// </returns>
         public IInputElement CommandTarget
         {
-            get
-            {
-                return (IInputElement)this.GetValue(CommandTargetProperty);
-            }
+            get { return (IInputElement)this.GetValue(CommandTargetProperty); }
 
-            set
-            {
-                this.SetValue(CommandTargetProperty, value);
-            }
+            set { this.SetValue(CommandTargetProperty, value); }
         }
 
         /// <summary>
@@ -135,15 +110,9 @@ namespace MahApps.Metro.Controls
         /// </returns>
         public bool IsEnabled
         {
-            get
-            {
-                return (bool)this.GetValue(IsEnabledProperty);
-            }
+            get { return (bool)this.GetValue(IsEnabledProperty); }
 
-            set
-            {
-                this.SetValue(IsEnabledProperty, value);
-            }
+            set { this.SetValue(IsEnabledProperty, BooleanBoxes.Box(value)); }
         }
 
         /// <summary>
@@ -151,15 +120,9 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public object ToolTip
         {
-            get
-            {
-                return GetValue(ToolTipProperty);
-            }
+            get { return GetValue(ToolTipProperty); }
 
-            set
-            {
-                SetValue(ToolTipProperty, value);
-            }
+            set { SetValue(ToolTipProperty, value); }
         }
 
         /// <summary>
@@ -181,6 +144,7 @@ namespace MahApps.Metro.Controls
             {
                 this.UnhookCommand(oldCommand);
             }
+
             if (newCommand != null)
             {
                 this.HookCommand(newCommand);
@@ -220,8 +184,9 @@ namespace MahApps.Metro.Controls
         {
             if (!(bool)value)
             {
-                return false;
+                return BooleanBoxes.FalseBox;
             }
+
             return ((HamburgerMenuItem)d).CanExecute;
         }
 
@@ -229,16 +194,14 @@ namespace MahApps.Metro.Controls
 
         private bool CanExecute
         {
-            get
-            {
-                return this.canExecute;
-            }
+            get { return this.canExecute; }
             set
             {
                 if (value == this.canExecute)
                 {
                     return;
                 }
+
                 this.canExecute = value;
                 this.CoerceValue(IsEnabledProperty);
             }

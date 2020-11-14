@@ -1,35 +1,42 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Data;
 using ControlzEx;
+using ControlzEx.Theming;
+using MahApps.Metro.Automation.Peers;
+using MahApps.Metro.ValueBoxes;
 
 namespace MahApps.Metro.Controls
 {
-    [StyleTypedProperty(Property = "ItemContainerStyle", StyleTargetType = typeof(WindowCommands))]
+    [StyleTypedProperty(Property = nameof(ItemContainerStyle), StyleTargetType = typeof(WindowCommands))]
     public class WindowCommands : ToolBar
     {
         /// <summary>Identifies the <see cref="Theme"/> dependency property.</summary>
         public static readonly DependencyProperty ThemeProperty
-            = DependencyProperty.Register(
-                nameof(Theme),
-                typeof(Theme),
-                typeof(WindowCommands),
-                new PropertyMetadata(Theme.Light, OnThemeChanged));
+            = DependencyProperty.Register(nameof(Theme),
+                                          typeof(string),
+                                          typeof(WindowCommands),
+                                          new PropertyMetadata(ThemeManager.BaseColorLight, OnThemePropertyChanged));
 
-        private static void OnThemeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnThemePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue != e.OldValue && e.NewValue is Theme theme)
+            if (e.NewValue != e.OldValue && e.NewValue is string baseColor)
             {
                 var windowCommands = (WindowCommands)d;
 
-                switch (theme)
+                switch (baseColor)
                 {
-                    case Theme.Light:
+                    case ThemeManager.BaseColorLightConst:
                     {
                         if (windowCommands.LightTemplate != null)
                         {
@@ -38,7 +45,7 @@ namespace MahApps.Metro.Controls
 
                         break;
                     }
-                    case Theme.Dark:
+                    case ThemeManager.BaseColorDarkConst:
                     {
                         if (windowCommands.DarkTemplate != null)
                         {
@@ -54,57 +61,54 @@ namespace MahApps.Metro.Controls
         /// <summary>
         /// Gets or sets the value indicating the current theme.
         /// </summary>
-        public Theme Theme
+        public string Theme
         {
-            get { return (Theme)this.GetValue(ThemeProperty); }
-            set { this.SetValue(ThemeProperty, value); }
+            get => (string)this.GetValue(ThemeProperty);
+            set => this.SetValue(ThemeProperty, value);
         }
 
         /// <summary>Identifies the <see cref="LightTemplate"/> dependency property.</summary>
         public static readonly DependencyProperty LightTemplateProperty
-            = DependencyProperty.Register(
-                nameof(LightTemplate),
-                typeof(ControlTemplate),
-                typeof(WindowCommands),
-                new PropertyMetadata(null));
+            = DependencyProperty.Register(nameof(LightTemplate),
+                                          typeof(ControlTemplate),
+                                          typeof(WindowCommands),
+                                          new PropertyMetadata(null));
 
         /// <summary>
         /// Gets or sets the value indicating the light theme ControlTemplate.
         /// </summary>
         public ControlTemplate LightTemplate
         {
-            get { return (ControlTemplate)this.GetValue(LightTemplateProperty); }
-            set { this.SetValue(LightTemplateProperty, value); }
+            get => (ControlTemplate)this.GetValue(LightTemplateProperty);
+            set => this.SetValue(LightTemplateProperty, value);
         }
 
         /// <summary>Identifies the <see cref="DarkTemplate"/> dependency property.</summary>
         public static readonly DependencyProperty DarkTemplateProperty
-            = DependencyProperty.Register(
-                nameof(DarkTemplate),
-                typeof(ControlTemplate),
-                typeof(WindowCommands),
-                new PropertyMetadata(null));
+            = DependencyProperty.Register(nameof(DarkTemplate),
+                                          typeof(ControlTemplate),
+                                          typeof(WindowCommands),
+                                          new PropertyMetadata(null));
 
         /// <summary>
         /// Gets or sets the value indicating the light theme ControlTemplate.
         /// </summary>
         public ControlTemplate DarkTemplate
         {
-            get { return (ControlTemplate)this.GetValue(DarkTemplateProperty); }
-            set { this.SetValue(DarkTemplateProperty, value); }
+            get => (ControlTemplate)this.GetValue(DarkTemplateProperty);
+            set => this.SetValue(DarkTemplateProperty, value);
         }
 
         /// <summary>Identifies the <see cref="ShowSeparators"/> dependency property.</summary>
         public static readonly DependencyProperty ShowSeparatorsProperty
-            = DependencyProperty.Register(
-                nameof(ShowSeparators),
-                typeof(bool),
-                typeof(WindowCommands),
-                new FrameworkPropertyMetadata(true,
-                                              FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
-                                              OnShowSeparatorsChanged));
+            = DependencyProperty.Register(nameof(ShowSeparators),
+                                          typeof(bool),
+                                          typeof(WindowCommands),
+                                          new FrameworkPropertyMetadata(BooleanBoxes.TrueBox,
+                                                                        FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
+                                                                        OnShowSeparatorsPropertyChanged));
 
-        private static void OnShowSeparatorsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnShowSeparatorsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue != e.OldValue)
             {
@@ -117,21 +121,20 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public bool ShowSeparators
         {
-            get { return (bool)this.GetValue(ShowSeparatorsProperty); }
-            set { this.SetValue(ShowSeparatorsProperty, value); }
+            get => (bool)this.GetValue(ShowSeparatorsProperty);
+            set => this.SetValue(ShowSeparatorsProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>Identifies the <see cref="ShowLastSeparator"/> dependency property.</summary>
         public static readonly DependencyProperty ShowLastSeparatorProperty
-            = DependencyProperty.Register(
-                nameof(ShowLastSeparator),
-                typeof(bool),
-                typeof(WindowCommands),
-                new FrameworkPropertyMetadata(true,
-                                              FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
-                                              OnShowLastSeparatorChanged));
+            = DependencyProperty.Register(nameof(ShowLastSeparator),
+                                          typeof(bool),
+                                          typeof(WindowCommands),
+                                          new FrameworkPropertyMetadata(BooleanBoxes.TrueBox,
+                                                                        FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
+                                                                        OnShowLastSeparatorPropertyChanged));
 
-        private static void OnShowLastSeparatorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnShowLastSeparatorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue != e.OldValue)
             {
@@ -144,17 +147,17 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public bool ShowLastSeparator
         {
-            get { return (bool)this.GetValue(ShowLastSeparatorProperty); }
-            set { this.SetValue(ShowLastSeparatorProperty, value); }
+            get => (bool)this.GetValue(ShowLastSeparatorProperty);
+            set => this.SetValue(ShowLastSeparatorProperty, BooleanBoxes.Box(value));
         }
 
         /// <summary>Identifies the <see cref="SeparatorHeight"/> dependency property.</summary>
         public static readonly DependencyProperty SeparatorHeightProperty
-            = DependencyProperty.Register(
-                nameof(SeparatorHeight),
-                typeof(double),
-                typeof(WindowCommands),
-                new FrameworkPropertyMetadata(15d, FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+            = DependencyProperty.Register(nameof(SeparatorHeight),
+                                          typeof(double),
+                                          typeof(WindowCommands),
+                                          new FrameworkPropertyMetadata(15d,
+                                                                        FrameworkPropertyMetadataOptions.AffectsArrange | FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
 
         /// <summary>
         /// Gets or sets the value indicating the height of the separators.
@@ -162,17 +165,16 @@ namespace MahApps.Metro.Controls
         [TypeConverter(typeof(LengthConverter))]
         public double SeparatorHeight
         {
-            get { return (double)this.GetValue(SeparatorHeightProperty); }
-            set { this.SetValue(SeparatorHeightProperty, value); }
+            get => (double)this.GetValue(SeparatorHeightProperty);
+            set => this.SetValue(SeparatorHeightProperty, value);
         }
 
         /// <summary>Identifies the <see cref="ParentWindow"/> dependency property.</summary>
-        public static readonly DependencyPropertyKey ParentWindowPropertyKey =
-            DependencyProperty.RegisterReadOnly(
-                nameof(ParentWindow),
-                typeof(Window),
-                typeof(WindowCommands),
-                new PropertyMetadata(null));
+        internal static readonly DependencyPropertyKey ParentWindowPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(ParentWindow),
+                                                typeof(Window),
+                                                typeof(WindowCommands),
+                                                new PropertyMetadata(null));
 
         /// <summary>Identifies the <see cref="ParentWindow"/> dependency property.</summary>
         public static readonly DependencyProperty ParentWindowProperty = ParentWindowPropertyKey.DependencyProperty;
@@ -182,8 +184,8 @@ namespace MahApps.Metro.Controls
         /// </summary>
         public Window ParentWindow
         {
-            get { return (Window)this.GetValue(ParentWindowProperty); }
-            private set { this.SetValue(ParentWindowPropertyKey, value); }
+            get => (Window)this.GetValue(ParentWindowProperty);
+            protected set => this.SetValue(ParentWindowPropertyKey, value);
         }
 
         static WindowCommands()
@@ -243,28 +245,29 @@ namespace MahApps.Metro.Controls
 
         private void AttachVisibilityHandler(WindowCommandsItem container, UIElement item)
         {
-            if (container != null)
+            if (container == null)
             {
-                if (null == item)
-                {
-                    // if item is not a UIElement then maybe the ItemsSource binds to a collection of objects
-                    // and an ItemTemplate is set, so let's try to solve this
-                    container.ApplyTemplate();
-                    var content = container.ContentTemplate?.LoadContent() as UIElement;
-                    if (null == content)
-                    {
-                        // no UIElement was found, so don't show this container
-                        container.Visibility = Visibility.Collapsed;
-                    }
+                return;
+            }
 
-                    return;
+            if (item is null)
+            {
+                // if item is not a UIElement then maybe the ItemsSource binds to a collection of objects
+                // and an ItemTemplate is set, so let's try to solve this
+                container.ApplyTemplate();
+                if (!(container.ContentTemplate?.LoadContent() is UIElement))
+                {
+                    // no UIElement was found, so don't show this container
+                    container.Visibility = Visibility.Collapsed;
                 }
 
-                container.Visibility = item.Visibility;
-                var isVisibilityNotifier = new PropertyChangeNotifier(item, VisibilityProperty);
-                isVisibilityNotifier.ValueChanged += this.VisibilityPropertyChanged;
-                container.VisibilityPropertyChangeNotifier = isVisibilityNotifier;
+                return;
             }
+
+            container.Visibility = item.Visibility;
+            var isVisibilityNotifier = new PropertyChangeNotifier(item, VisibilityProperty);
+            isVisibilityNotifier.ValueChanged += this.VisibilityPropertyChanged;
+            container.VisibilityPropertyChangeNotifier = isVisibilityNotifier;
         }
 
         private void DetachVisibilityHandler(WindowCommandsItem container)
@@ -277,8 +280,7 @@ namespace MahApps.Metro.Controls
 
         private void VisibilityPropertyChanged(object sender, EventArgs e)
         {
-            var item = sender as UIElement;
-            if (item != null)
+            if (sender is UIElement item)
             {
                 var container = this.GetWindowCommandsItem(item);
                 if (container != null)
@@ -357,6 +359,14 @@ namespace MahApps.Metro.Controls
                 var window = this.TryFindParent<Window>();
                 this.SetValue(ParentWindowPropertyKey, window);
             }
+        }
+
+        /// <summary>
+        /// Creates AutomationPeer (<see cref="UIElement.OnCreateAutomationPeer"/>)
+        /// </summary>
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new WindowCommandsAutomationPeer(this);
         }
     }
 }

@@ -6,7 +6,7 @@
 #tool "dotnet:?package=NuGetKeyVaultSignTool&version=1.2.18"
 #tool "dotnet:?package=AzureSignTool&version=2.0.17"
 
-#tool GitVersion.CommandLine&version=5.0.1
+#tool GitVersion.CommandLine&version=5.3.7
 #tool gitreleasemanager
 #tool xunit.runner.console
 #tool vswhere
@@ -37,7 +37,7 @@ GitVersion gitVersion = GitVersion(new GitVersionSettings { OutputType = GitVers
 var isPullRequest = AppVeyor.Environment.PullRequest.IsPullRequest;
 var branchName = gitVersion.BranchName;
 var isDevelopBranch = StringComparer.OrdinalIgnoreCase.Equals("develop", branchName);
-var isReleaseBranch = StringComparer.OrdinalIgnoreCase.Equals("master", branchName);
+var isReleaseBranch = StringComparer.OrdinalIgnoreCase.Equals("main", branchName);
 var isTagged = AppVeyor.Environment.Repository.Tag.IsTag;
 
 var latestInstallationPath = VSWhereLatest(new VSWhereLatestSettings { IncludePrerelease = true });
@@ -119,6 +119,7 @@ Task("Build")
             .WithProperty("AssemblyVersion", gitVersion.AssemblySemVer)
             .WithProperty("FileVersion", gitVersion.AssemblySemFileVer)
             .WithProperty("InformationalVersion", gitVersion.InformationalVersion)
+            .WithProperty("ContinuousIntegrationBuild", isReleaseBranch ? "true" : "false")
             );
 });
 
